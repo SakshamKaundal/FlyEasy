@@ -1,0 +1,225 @@
+@import "tailwindcss";
+
+/* Mobile-first breakpoints (min-width approach) */
+@custom-variant sm (@media (min-width: 640px));
+@custom-variant md (@media (min-width: 768px));
+@custom-variant lg (@media (min-width: 1024px));
+@custom-variant xl (@media (min-width: 1280px));
+@custom-variant 2xl (@media (min-width: 1536px));
+
+/* Additional mobile-specific breakpoints */
+@custom-variant xs (@media (max-width: 639px));
+@custom-variant mobile-portrait (@media (max-width: 480px) and (orientation: portrait));
+@custom-variant mobile-landscape (@media (max-width: 896px) and (orientation: landscape));
+
+/* Touch device detection */
+@custom-variant touch (@media (hover: none) and (pointer: coarse));
+@custom-variant no-touch (@media (hover: hover) and (pointer: fine));
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  
+  /* Mobile-optimized spacing */
+  --spacing-mobile: 1rem;
+  --spacing-desktop: 2rem;
+  
+  /* Responsive font sizes */
+  --font-size-base: clamp(0.875rem, 2.5vw, 1rem);
+  --font-size-lg: clamp(1rem, 3vw, 1.125rem);
+  --font-size-xl: clamp(1.125rem, 4vw, 1.5rem);
+  --font-size-2xl: clamp(1.5rem, 5vw, 2rem);
+  
+  /* Touch-friendly tap targets */
+  --tap-target-size: 44px;
+  
+  /* Safe area insets for notched devices */
+  --safe-area-top: env(safe-area-inset-top);
+  --safe-area-right: env(safe-area-inset-right);
+  --safe-area-bottom: env(safe-area-inset-bottom);
+  --safe-area-left: env(safe-area-inset-left);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  
+  /* Mobile-optimized theme values */
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-5: 1.25rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+  --spacing-10: 2.5rem;
+  --spacing-12: 3rem;
+  --spacing-16: 4rem;
+  --spacing-20: 5rem;
+  --spacing-24: 6rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+/* Base mobile-first styles */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+  
+  /* Mobile optimizations */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-size-adjust: 100%;
+  
+  /* Prevent horizontal scroll on mobile */
+  overflow-x: hidden;
+  
+  /* Safe area support */
+  padding-top: var(--safe-area-top);
+  padding-right: var(--safe-area-right);
+  padding-bottom: var(--safe-area-bottom);
+  padding-left: var(--safe-area-left);
+}
+
+/* Mobile-specific base styles */
+* {
+  box-sizing: border-box;
+}
+
+/* Improve touch targets */
+button,
+[role="button"],
+input[type="submit"],
+input[type="button"] {
+  min-height: var(--tap-target-size);
+  min-width: var(--tap-target-size);
+}
+
+/* Optimize images for mobile */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Mobile-friendly form elements */
+input,
+textarea,
+select {
+  font-size: 16px; /* Prevents zoom on iOS */
+  max-width: 100%;
+}
+
+/* Responsive typography */
+h1 { font-size: var(--font-size-2xl); }
+h2 { font-size: var(--font-size-xl); }
+h3 { font-size: var(--font-size-lg); }
+h4, h5, h6 { font-size: var(--font-size-base); }
+
+/* Mobile container */
+.container {
+  width: 100%;
+  max-width: 100%;
+  padding-left: var(--spacing-mobile);
+  padding-right: var(--spacing-mobile);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Responsive container widths */
+@media (min-width: 640px) {
+  .container {
+    max-width: 640px;
+    padding-left: var(--spacing-4);
+    padding-right: var(--spacing-4);
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 768px;
+    padding-left: var(--spacing-6);
+    padding-right: var(--spacing-6);
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1024px;
+    padding-left: var(--spacing-desktop);
+    padding-right: var(--spacing-desktop);
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1280px;
+  }
+}
+
+@media (min-width: 1536px) {
+  .container {
+    max-width: 1536px;
+  }
+}
+
+/* Mobile-first utility classes */
+.mobile-only {
+  display: block;
+}
+
+.desktop-only {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .mobile-only {
+    display: none;
+  }
+  
+  .desktop-only {
+    display: block;
+  }
+}
+
+/* Touch-friendly interactive elements */
+.touch-target {
+  min-height: var(--tap-target-size);
+  min-width: var(--tap-target-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Smooth scrolling for mobile */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Disable hover effects on touch devices */
+@media (hover: none) {
+  .hover\:scale-105:hover {
+    transform: none;
+  }
+  
+  .hover\:bg-gray-100:hover {
+    background-color: inherit;
+  }
+}
+
+/* Enable hover effects only on devices that support hover */
+@media (hover: hover) {
+  .hover-enabled:hover {
+    /* Your hover styles here */
+  }
+}
