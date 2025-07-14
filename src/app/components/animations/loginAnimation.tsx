@@ -1,22 +1,24 @@
 'use client';
+
 import Lottie from 'lottie-react';
-import loginAnimation from "@/app/components/asset/lottieJson/loginFlight.json"
+import loginAnimation from "@/app/components/asset/lottieJson/loginFlight.json";
 
-
-
-const LoadingEmailTrigger= () => {
+const LoginAnimation = () => {
   return (
-    <div className='mobile-container'>
+    <div className="w-full h-full flex items-center justify-center p-4">
       <Lottie
         animationData={loginAnimation}
-        loop={true}
-        style={{ width: 500, height: 500 }}
+        loop
+        style={{
+          width: '100%',
+          maxWidth: '400px',
+          height: 'auto',
+          maxHeight: '80vh',
+          objectFit: 'contain',
+        }}
       />
- 
-
     </div>
   );
 };
 
-export default LoadingEmailTrigger;
-
+export default LoginAnimation;

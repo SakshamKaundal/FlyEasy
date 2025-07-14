@@ -1,6 +1,7 @@
 import { createContext, useContext } from "react";
 
 export interface UserInformation {
+  id: string;
   name: string;
   email: string;
 }
@@ -9,7 +10,9 @@ type UserContextType = {
   user: UserInformation | null;
   setUser: (user: UserInformation) => void;
 };
+
 const UserContext = createContext<UserContextType | undefined>(undefined);
+
 export const useUserInformation = () => {
   const context = useContext(UserContext);
   if (!context) {

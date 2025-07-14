@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import LoginAnimation from "@/app/components/animations/loginAnimation";
 import VerifyOtp from "./OtpVerification";
 import { useUserInformation } from "@/components/context-api/save-user-context";
 import { useCheckUserExists } from "@/components/hooks/useCheckExistingUsers";
+import { v4 as uuidv4 } from 'uuid';
 
 const Page = () => {
   const router = useRouter();
@@ -39,110 +40,107 @@ const Page = () => {
     setEmailError("");
     return true;
   };
+
   useEffect(() => {
     setUserVerified(isExistingUser);
   }, [isExistingUser]);
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  if (!validateEmail(email)) return;
-  if (userVerified && !password) return alert("Please enter your password");
-  if (!userVerified && !confirmPassword) return alert("Please confirm your password");
-  if (!userVerified && password !== confirmPassword) return alert("Passwords do not match");
+    if (!validateEmail(email)) return;
+    if (userVerified && !password) return alert("Please enter your password");
+    if (!userVerified && !confirmPassword) return alert("Please confirm your password");
+    if (!userVerified && password !== confirmPassword) return alert("Passwords do not match");
 
-  setButtonLoading(true);
+    setButtonLoading(true);
 
-  try {
-    if (!userVerified) {
-      const response = await fetch("/api/create-user", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          password,
-          name: email.split("@")[0],
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Signup failed");
-      }
-    } else {
-      const response = await fetch("/api/authentication", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Login failed");
-      }
-    }
-
-    // Store auth data for OTP verification stage
-    setCurrentAuthPayload({ email, password });
-    setShowOtpVerification(true);
-  } catch (err) {
-    if (err instanceof Error) {
-      alert(err.message);
-      console.error(err);
-    } else {
-      alert("An unknown error occurred.");
-      console.error(err);
-    }
-  } finally {
-    setButtonLoading(false);
-  }
-};
-
-
-
-const handleVerifyOtp = async (otpValue: string) => {
-  if (!otpValue || !currentAuthPayload?.email) return;
-
-  if (otpValue === "123456") {
     try {
-      const response = await fetch("/api/set-token", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: currentAuthPayload.email }),
-      });
+      if (!userVerified) {
+        const response = await fetch("/api/create-user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            password,
+            name: email.split("@")[0],
+          }),
+        });
 
-      const data = await response.json();
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || "Signup failed");
+        }
+      } else {
+        const response = await fetch("/api/authentication", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
 
-      if (!response.ok) {
-        throw new Error(data.message || "Token setup failed");
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || "Login failed");
+        }
       }
+
+      setCurrentAuthPayload({ email, password });
+      setShowOtpVerification(true);
+    } catch (err) {
+      if (err instanceof Error) {
+        alert(err.message);
+        console.error(err);
+      } else {
+        alert("An unknown error occurred.");
+        console.error(err);
+      }
+    } finally {
+      setButtonLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (otpValue: string) => {
+    if (!otpValue || !currentAuthPayload?.email) return;
+
+    if (otpValue === "123456") {
+      try {
+        const response = await fetch("/api/set-token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: currentAuthPayload.email }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Token setup failed");
+        }
 
       setUser({
-        name: currentAuthPayload.email.split("@")[0],
-        email: currentAuthPayload.email,
-      });
+  name: currentAuthPayload.email.split("@")[0],
+  email: currentAuthPayload.email,
+  id: uuidv4(),
+});
 
-      router.push(`/dashboard`);
-    } catch (err) {
-      alert("Token setup failed");
-      console.error(err);
+        router.push(`/user`);
+      } catch (err) {
+        alert("Token setup failed");
+        console.error(err);
+      }
+    } else {
+      alert("Incorrect OTP");
     }
-  } else {
-    alert("Incorrect OTP");
-  }
-};
-
+  };
 
   const regenerateOtp = () => {
     alert("OTP Sent Successfully");
   };
 
   return (
-    <div className="flex flex-col lg:flex-row w-full min-h-screen bg-[#FDFDFD]">
+    <div className="flex flex-col lg:flex-row w-full h-screen bg-[#FDFDFD] overflow-hidden">
+      {/* Left Section with Animation */}
       <div
-        className="w-full lg:w-1/2 flex items-center justify-center p-4"
+        className="w-full lg:w-1/2 h-full flex items-center justify-center p-4"
         style={{
           backgroundImage: `url(${BgCurves.src})`,
           backgroundSize: "cover",
@@ -152,11 +150,12 @@ const handleVerifyOtp = async (otpValue: string) => {
         <LoginAnimation />
       </div>
 
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-4">
+      {/* Right Section with Form or OTP */}
+      <div className="w-full lg:w-1/2 h-full flex items-center justify-center p-4 overflow-hidden">
         {showOtpVerification ? (
           <VerifyOtp onVerifyComplete={handleVerifyOtp} regenerateOtp={regenerateOtp} />
         ) : (
-          <div className="text-center w-full max-w-md">
+          <div className="text-center w-full max-w-md max-h-[95vh] overflow-auto">
             <p className="font-semibold mt-4">Please login to continue</p>
             <form onSubmit={handleSubmit} className="flex flex-col text-left mt-6">
               <label className="text-base my-2">Email</label>
@@ -176,7 +175,7 @@ const handleVerifyOtp = async (otpValue: string) => {
                 </p>
               )}
 
-              {userVerified && (
+              {userVerified ? (
                 <>
                   <label className="my-2">Password</label>
                   <Input
@@ -187,9 +186,7 @@ const handleVerifyOtp = async (otpValue: string) => {
                     placeholder="Enter your password"
                   />
                 </>
-              )}
-
-              {!userVerified && (
+              ) : (
                 <>
                   <label className="my-2">Password</label>
                   <Input
