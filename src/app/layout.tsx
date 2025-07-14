@@ -1,28 +1,23 @@
-'use client';
+// ✅ app/layout.tsx — SERVER COMPONENT (no 'use client')
+import './globals.css';
+import { Geist, Geist_Mono } from 'next/font/google';
+import ClientLayout from './ClientLayout';
+import { ReactNode } from 'react';
 
-import { Geist, Geist_Mono } from "next/font/google";
-import UserContext from "@/components/context-api/save-user-context";
-import "./globals.css";
-import { UserInformation } from "./types/application.types";
-import { useState } from "react";
-import Layout from "./components/common_components/layout";
+const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] });
+const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] });
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+export const metadata = {
+  title: 'Flight Booking',
+  description: 'Flight Bookings',
+  themeColor: '#000000',
+};
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [user, setUser] = useState<UserInformation | null>(null);
-
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <UserContext.Provider value={{ user, setUser }}>
-          <Layout>{children}</Layout>
-        </UserContext.Provider>
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   );

@@ -30,7 +30,7 @@ const Sidebar = () => {
     { label: 'My Bookings', icon: NotebookPen, href: '/bookings' },
     { label: 'Past Bookings', icon: BookLock, href: '/home' },
     { label: 'Settings', icon: Settings, href: '/home' },
-    { label: 'Flight Updates', icon: BellRing, href: '/home' },
+    { label: 'Flight Updates', icon: BellRing, href: '/updates' },
     { label: 'Contact Us', icon: PhoneForwarded, href: '/home' },
   ];
 

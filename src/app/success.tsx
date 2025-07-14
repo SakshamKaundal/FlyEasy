@@ -1,6 +1,7 @@
 'use client';
 
 import { CircleCheckBig } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 interface SuccessModalProps {
   message: string;
@@ -8,6 +9,7 @@ interface SuccessModalProps {
 }
 
 const SuccessModal: React.FC<SuccessModalProps> = ({ message, onClose }) => {
+  const router = useRouter()
   return (
     <div
       className="fixed inset-0 bg-opacity-30 flex items-center justify-center z-50"
@@ -23,12 +25,15 @@ const SuccessModal: React.FC<SuccessModalProps> = ({ message, onClose }) => {
         </div>
 
         <div className="mt-6 flex justify-center">
-          <button
-            onClick={onClose}
-            className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-          >
-            Close
-          </button>
+         <button
+  onClick={() => {
+    onClose();
+    router.push('/bookings');
+  }}
+  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+>
+  Close
+</button>
         </div>
       </div>
     </div>

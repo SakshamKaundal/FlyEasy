@@ -44,7 +44,7 @@ const setReturnDate = useFlightStore((state) => state.setReturnDate);
   >([]);
 
 
-  const { user } = useUserInformation();
+  const { user , setIsRoundTrip } = useUserInformation();
 
 
 
@@ -64,6 +64,7 @@ const setReturnDate = useFlightStore((state) => state.setReturnDate);
     if (!from || !to || !startDate) return alert('Please fill in all required fields.');
 
     setSearching(true);
+    setIsRoundTrip(!!returnDate);
     setShowResults(false);
 
     try {

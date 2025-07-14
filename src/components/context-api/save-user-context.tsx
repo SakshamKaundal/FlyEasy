@@ -9,6 +9,8 @@ export interface UserInformation {
 type UserContextType = {
   user: UserInformation | null;
   setUser: (user: UserInformation) => void;
+  isRoundTrip: boolean;
+  setIsRoundTrip: (value: boolean) => void;
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);

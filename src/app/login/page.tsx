@@ -41,6 +41,7 @@ const Page = () => {
     return true;
   };
 
+  
   useEffect(() => {
     setUserVerified(isExistingUser);
   }, [isExistingUser]);

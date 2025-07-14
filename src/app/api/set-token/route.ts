@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import { SignJWT } from "jose";
 
 const JWT_SECRET = process.env.JWT_SECRET || "flight_management";
 
@@ -11,7 +11,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Missing email" }, { status: 400 });
     }
 
-    const token = jwt.sign({ email }, JWT_SECRET, { expiresIn: "1h" });
+    const secret = new TextEncoder().encode(JWT_SECRET);
+    const token = await new SignJWT({ email })
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setExpirationTime("1h")
+      .sign(secret);
 
     const response = NextResponse.json({ message: "Token created" });
 
@@ -20,7 +25,7 @@ export async function POST(req: Request) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       path: "/",
-      maxAge: 60 * 60, // 1 hour
+      maxAge: 60 * 60, 
     });
 
     return response;

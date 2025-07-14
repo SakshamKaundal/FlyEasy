@@ -1,0 +1,22 @@
+{
+  "name": "Flight Booking Simulator",
+  "short_name": "App",
+  "description": "Flight booking simulator",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/travelBookingd.jpg",
+      "sizes": "150x150",
+      "type": "image/jpg"
+    },
+    {
+      "src": "/icons/travelBookingd.jpg",
+     "sizes": "150x150",
+      "type": "image/jpg"
+    }
+  ]
+}

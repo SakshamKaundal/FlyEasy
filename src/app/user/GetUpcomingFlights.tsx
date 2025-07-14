@@ -2,6 +2,8 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useFlightStore } from '@/zustand-store/user-search-store';
+import ErrorModal from '../error';
 
 interface UpcomingFlight {
   flight_id: string;
@@ -20,22 +22,43 @@ interface Props {
 const UpcomingFlights: React.FC<Props> = ({ onSelect }) => {
   const [flights, setFlights] = useState<UpcomingFlight[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const from = useFlightStore((state) => state.from);
+  const to = useFlightStore((state) => state.to);
+  const outboundDate = useFlightStore((state) => state.startDate);
+  const returnDate = useFlightStore((state) => state.returnDate);
 
   useEffect(() => {
     const fetchFlights = async () => {
       try {
-        const res = await fetch('/api/get-week-flight');
+        const res = await fetch('/api/get-week-flight', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from,
+            to,
+            outboundDate,
+            returnDate,
+          }),
+        });
+
         const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'API Error');
         setFlights(data.flights || []);
-      } catch (err) {
-        console.error('Failed to load upcoming flights:', err);
+      } catch {
+        setHasError(true);
       } finally {
         setLoading(false);
       }
     };
-    fetchFlights();
-  }, []);
+
+    if (from && to && outboundDate && returnDate) fetchFlights();
+    else setLoading(false);
+  }, [from, to, outboundDate, returnDate]);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
@@ -48,6 +71,7 @@ const UpcomingFlights: React.FC<Props> = ({ onSelect }) => {
   };
 
   if (loading) return <p className="text-sm text-center text-gray-500">Loading flights...</p>;
+  if (hasError) return <ErrorModal message="Failed to load upcoming flights." onClose={() => setHasError(false)} />;
   if (flights.length === 0) return <p className="text-sm text-center text-gray-500">No upcoming flights found.</p>;
 
   return (
@@ -61,7 +85,7 @@ const UpcomingFlights: React.FC<Props> = ({ onSelect }) => {
           >
             <p className="font-semibold text-black truncate">{flight.flight_number} ({flight.company_name})</p>
             <p className="text-gray-600 text-xs truncate">{flight.from} → {flight.to}</p>
-            <p className="text-gray-600 text-xs">Date: {flight.date} ₹{flight?.fare}</p>
+            <p className="text-gray-600 text-xs">Date: {flight.date} ₹{flight.fare}</p>
           </div>
         ))}
       </div>

@@ -23,6 +23,11 @@ type RequestBody = {
   user_name: string;
   flight_id: string;
   payment_id?: string;
+  flight_from: string;
+  flight_to: string;
+  flight_date: string;
+  travel_class: 'economy' | 'premium' | 'business';
+  total_amount: number;
   passengers: {
     name: string;
     age: string;
@@ -33,10 +38,35 @@ type RequestBody = {
 export async function POST(req: NextRequest) {
   const body: RequestBody = await req.json();
   let { user_id } = body;
-  const { user_email, user_name, flight_id, passengers, payment_id } = body;
+  const { 
+    user_email, 
+    user_name, 
+    flight_id, 
+    passengers, 
+    payment_id,
+    flight_from,
+    flight_to,
+    flight_date,
+    travel_class,
+    total_amount
+  } = body;
 
-  if (!user_id || !user_email || !user_name || !flight_id || !Array.isArray(passengers) || passengers.length === 0) {
-    return NextResponse.json({ message: 'Missing required fields.' }, { status: 400 });
+  if (!user_id || !user_email || !user_name || !flight_id || !Array.isArray(passengers) || passengers.length === 0 || !flight_from || !flight_to || !flight_date || !travel_class || total_amount === undefined || total_amount === null) {
+    return NextResponse.json({ 
+      message: 'Missing required fields.',
+      received: {
+        user_id: !!user_id,
+        user_email: !!user_email,
+        user_name: !!user_name,
+        flight_id: !!flight_id,
+        passengers: Array.isArray(passengers) && passengers.length > 0,
+        flight_from: !!flight_from,
+        flight_to: !!flight_to,
+        flight_date: !!flight_date,
+        travel_class: !!travel_class,
+        total_amount: total_amount !== undefined && total_amount !== null
+      }
+    }, { status: 400 });
   }
 
   const { data: existingUserById } = await supabase
@@ -76,6 +106,11 @@ export async function POST(req: NextRequest) {
       flight_id,
       payment_id: payment_id || null,
       payment_status: true,
+      flight_from,
+      flight_to,
+      flight_date,
+      travel_class,
+      total_amount,
     })
     .select()
     .single();

@@ -17,8 +17,6 @@ interface Journey {
   flights: Flights;
 }
 
-
-
 export async function POST(req: NextRequest) {
   const { from, to, date, returnDate } = await req.json();
 
@@ -83,8 +81,16 @@ export async function POST(req: NextRequest) {
     };
   });
 
-  const oneWay = allFlights.filter((f) => f.date === date);
-  const returnFlights = returnDate ? allFlights.filter((f) => f.date === returnDate) : [];
+  const oneWay = allFlights.filter(
+    (f) => f.date === date && f.from === from && f.to === to
+  );
 
+  const returnFlights = returnDate
+    ? allFlights.filter(
+        (f) => f.date === returnDate && f.from === to && f.to === from
+      )
+    : [];
+
+    console.log(returnFlights , returnDate)
   return NextResponse.json({ oneWay, return: returnFlights }, { status: 200 });
 }
