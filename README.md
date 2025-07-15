@@ -1137,3 +1137,33 @@ console.log(history);
 * This storage method is useful for caching recent searches and improving user experience without requiring server calls.
 
 
+## ✅ Progressive Web App (PWA) Support
+
+Our application is now a **Progressive Web App (PWA)**, providing a seamless and app-like experience across devices. Here’s what that means for you:
+
+### 🚀 What’s New?
+
+* **Installable App**: You can now install the app directly to your home screen or desktop, just like a native app.
+* **Offline Support**: The app works even with limited or no internet connectivity, thanks to intelligent caching and offline-first design.
+* **Faster Load Times**: Pages and assets load quickly by leveraging service workers and caching strategies.
+* **Improved User Experience**: The app now supports a full-screen mode and removes browser UI distractions, offering a more immersive interface.
+* **Reliable Performance**: Key parts of the app remain accessible and functional even under unstable network conditions.
+
+### 🔧 Behind the Scenes
+
+Under the hood, the app uses:
+
+* **Service Workers** to cache assets and serve them offline.
+* A valid **Web App Manifest** to define how the app behaves when installed.
+* Support for modern browser features like **IndexedDB**, which enhances offline capabilities and data persistence.
+
+### 💡 How to Install
+
+On most devices:
+
+1. Open the app in your browser.
+2. Look for the install prompt (e.g., "Add to Home Screen").
+3. Follow the instructions to install the app.
+
+Once installed, you’ll have a faster, more reliable experience — no address bar, smoother interactions, and offline access.
+
