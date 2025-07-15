@@ -723,3 +723,129 @@ eventSource.onmessage = (event) => {
 ```
 
 This comprehensive documentation covers all 11 APIs with detailed explanations, examples, and usage patterns. Each API is fully documented with request/response formats, error handling, and key features.
+
+
+## 🛫 Flight Booking System – Database Schema Documentation
+
+This project uses a relational database (PostgreSQL via Supabase) to manage a full-fledged **flight booking system**. Below is a complete explanation of the database schema, written to help both developers and reviewers understand the system design.
+
+---
+
+### 📦 Tables Overview
+
+The schema consists of the following core tables:
+
+* `users` – stores registered user data
+* `flights` – stores individual flight info
+* `journeys` – links flights to specific travel dates and routes
+* `fare_rules` – pricing rules based on passenger type and class
+* `bookings` – user bookings for flights
+* `passengers` – individual passengers tied to a booking
+
+---
+
+## 🧑‍💼 `users` Table
+
+Stores information about users registered in the system. This table references Supabase's `auth.users` table for authentication.
+
+| Column     | Type      | Description                                     |
+| ---------- | --------- | ----------------------------------------------- |
+| `id`       | `uuid`    | Primary key; also foreign key from `auth.users` |
+| `name`     | `text`    | Name of the user                                |
+| `email`    | `text`    | User's email address (must be unique)           |
+| `is_admin` | `boolean` | Marks if the user is an admin (default: false)  |
+
+---
+
+## ✈️ `flights` Table
+
+Stores general information about a flight (not tied to a specific date).
+
+| Column           | Type   | Description                 |
+| ---------------- | ------ | --------------------------- |
+| `id`             | `uuid` | Primary key                 |
+| `company_name`   | `text` | Name of the airline company |
+| `flight_number`  | `text` | Flight number (e.g. AI-202) |
+| `departure_time` | `time` | Scheduled departure time    |
+| `arrival_time`   | `time` | Scheduled arrival time      |
+
+---
+
+## 🧝 `journeys` Table
+
+Represents a specific flight journey between two locations on a specific date.
+
+| Column        | Type   | Description                    |
+| ------------- | ------ | ------------------------------ |
+| `id`          | `uuid` | Primary key                    |
+| `flight_id`   | `uuid` | Foreign key to `flights` table |
+| `flight_from` | `text` | Departure city                 |
+| `flight_to`   | `text` | Arrival city                   |
+| `flight_date` | `date` | Journey date                   |
+
+---
+
+## 💸 `fare_rules` Table
+
+Defines pricing rules based on origin, destination, class of travel, and passenger type.
+
+| Column           | Type      | Description                                     |
+| ---------------- | --------- | ----------------------------------------------- |
+| `id`             | `uuid`    | Primary key                                     |
+| `flight_from`    | `text`    | Departure city                                  |
+| `flight_to`      | `text`    | Arrival city                                    |
+| `travel_class`   | `text`    | Travel class (`economy`, `premium`, `business`) |
+| `passenger_type` | `text`    | Passenger type (`adult`, `child`, `infant`)     |
+| `base_price`     | `numeric` | Base fare for this combination                  |
+
+---
+
+## 💼 `bookings` Table
+
+Stores confirmed bookings made by users for flights.
+
+| Column           | Type        | Description                                     |
+| ---------------- | ----------- | ----------------------------------------------- |
+| `id`             | `uuid`      | Primary key                                     |
+| `user_id`        | `uuid`      | Foreign key to `users`                          |
+| `flight_id`      | `uuid`      | Foreign key to `flights`                        |
+| `payment_status` | `boolean`   | True if paid, false otherwise                   |
+| `payment_id`     | `text`      | Reference ID from payment gateway               |
+| `created_at`     | `timestamp` | When the booking was made                       |
+| `updated_at`     | `timestamp` | Last updated time                               |
+| `flight_from`    | `text`      | Departure city (redundant for convenience)      |
+| `flight_to`      | `text`      | Arrival city                                    |
+| `flight_date`    | `date`      | Date of travel                                  |
+| `travel_class`   | `text`      | Class chosen (`economy`, `premium`, `business`) |
+| `total_amount`   | `numeric`   | Final total fare                                |
+
+---
+
+## 👥 `passengers` Table
+
+Lists all passengers for each booking. A booking can have multiple passengers.
+
+| Column        | Type      | Description                                    |
+| ------------- | --------- | ---------------------------------------------- |
+| `id`          | `uuid`    | Primary key                                    |
+| `booking_id`  | `uuid`    | Foreign key to `bookings` table                |
+| `name`        | `text`    | Full name of passenger                         |
+| `age`         | `integer` | Age of the passenger                           |
+| `gender`      | `text`    | Gender of the passenger                        |
+| `seat_number` | `text`    | Assigned seat number (optional)                |
+| `is_primary`  | `boolean` | Marks the main contact person (default: false) |
+
+---
+
+## 📄 Notes
+
+* All tables use `uuid` as primary keys for secure and scalable identification.
+* Foreign key constraints ensure relational integrity.
+* ENUMs and `CHECK` constraints are used to ensure data consistency (e.g., travel class, passenger type).
+* `created_at` and `updated_at` fields help track booking activity.
+
+---
+
+> This schema is optimized for simplicity and clarity while supporting future scalability.
+
+Feel free to contribute or adapt this database structure for your own flight or booking-based systems.
