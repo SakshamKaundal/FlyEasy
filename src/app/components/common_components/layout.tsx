@@ -3,6 +3,7 @@ import { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
+import Footer from "./footer";
 
 interface LayoutProps {
   children?: ReactNode;
@@ -11,13 +12,12 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const pathname = usePathname();
 
-  const layoutPaths = ["/dashboard", "/user" , "/payments" , "/bookings" , "/updates" , "/flights"];
+  const layoutPaths = ["/dashboard", "/user", "/payments", "/bookings", "/updates", "/flights", "/contact"];
   const showLayout = layoutPaths.some((path) => pathname.startsWith(path));
 
   return (
     <div className="relative min-h-screen flex bg-white overflow-x-hidden">
       {showLayout && <Sidebar />}
-
       <div
         className={`flex flex-col flex-1 transition-all duration-300 min-w-0 ${
           showLayout ? 'lg:ml-56' : ''
@@ -31,6 +31,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         >
           {children}
         </main>
+        {showLayout && <Footer />}
       </div>
     </div>
   );

@@ -5,9 +5,7 @@ import SearchFlights from '../components/animations/loadingFlights';
 import FlightResults from './flightCardComponent';
 import { saveSearch, getSearchHistoryByEmail } from '@/lib/indexedDb';
 import { useUserInformation } from '@/components/context-api/save-user-context';
-import RecentSearches from './recentSearch';
 import { useFlightStore } from '@/zustand-store/user-search-store';
-
 
 interface Flight {
   flight_id: string;
@@ -21,20 +19,72 @@ interface Flight {
   to: string;
 }
 
+interface RecentSearchesProps {
+  searchHistory: {
+    id?: number;
+    query: {
+      from: string;
+      to: string;
+      date: string;
+      returnDate?: string;
+    };
+  }[];
+  onSelectSearch: (query: {
+    from: string;
+    to: string;
+    date: string;
+    returnDate?: string;
+  }) => void;
+}
+
+const RecentSearches: React.FC<RecentSearchesProps> = ({ searchHistory, onSelectSearch }) => {
+  if (searchHistory.length === 0) return null;
+
+  return (
+    <div className="w-full max-w-lg mt-6">
+      <h3 className="text-lg font-medium mb-3 text-center">Recent Searches</h3>
+      
+      <div className="flex flex-row gap-3 overflow-x-auto pb-2 sm:pb-0 sm:flex-wrap sm:justify-center">
+        {searchHistory.map((search, index) => (
+          <button
+            key={search.id || index}
+            onClick={() => onSelectSearch(search.query)}
+            className="flex-shrink-0 w-64 sm:w-auto sm:flex-shrink bg-white border border-gray-200 rounded-lg p-3 sm:p-2 hover:bg-gray-50 hover:border-gray-300 transition-colors duration-200 text-left"
+          >
+            <div className="text-sm text-gray-700 sm:text-xs">
+              <div className="font-medium">
+                {search.query.from} → {search.query.to}
+              </div>
+              <div className="text-xs text-gray-500 mt-1 sm:mt-0">
+                {search.query.date}
+                {search.query.returnDate && ` - ${search.query.returnDate}`}
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+      
+      <div className="sm:hidden text-center mt-2">
+        <span className="text-xs text-gray-400">← Scroll for more →</span>
+      </div>
+    </div>
+  );
+};
+
 const cities = [
   'Delhi', 'Mumbai', 'Bangalore', 'Hyderabad', 'Chennai',
   'Kolkata', 'Pune', 'Goa', 'Ahmedabad', 'Lucknow',
 ];
 
 const BookingForm = () => {
-const from = useFlightStore((state) => state.from);
-const to = useFlightStore((state) => state.to);
-const setFrom = useFlightStore((state) => state.setFrom);
-const setTo = useFlightStore((state) => state.setTo);
-const startDate = useFlightStore((state) => state.startDate);
-const returnDate = useFlightStore((state) => state.returnDate);
-const setStartDate = useFlightStore((state) => state.setStartDate);
-const setReturnDate = useFlightStore((state) => state.setReturnDate);
+  const from = useFlightStore((state) => state.from);
+  const to = useFlightStore((state) => state.to);
+  const setFrom = useFlightStore((state) => state.setFrom);
+  const setTo = useFlightStore((state) => state.setTo);
+  const startDate = useFlightStore((state) => state.startDate);
+  const returnDate = useFlightStore((state) => state.returnDate);
+  const setStartDate = useFlightStore((state) => state.setStartDate);
+  const setReturnDate = useFlightStore((state) => state.setReturnDate);
   const [searching, setSearching] = useState(false);
   const [oneWayResults, setOneWayResults] = useState<Flight[]>([]);
   const [returnResults, setReturnResults] = useState<Flight[]>([]);
@@ -43,12 +93,7 @@ const setReturnDate = useFlightStore((state) => state.setReturnDate);
     { id?: number; query: { from: string; to: string; date: string; returnDate?: string } }[]
   >([]);
 
-
-  const { user , setIsRoundTrip } = useUserInformation();
-
-
-
-
+  const { user, setIsRoundTrip } = useUserInformation();
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -97,53 +142,53 @@ const setReturnDate = useFlightStore((state) => state.setReturnDate);
     } catch (error) {
       setSearching(false);
       alert('Something went wrong while fetching flights.');
-      return error
+      return error;
     }
   };
 
   const handleRecentSearchClick = async (query: {
-  from: string;
-  to: string;
-  date: string;
-  returnDate?: string;
-}) => {
-  setFrom(query.from);
-  setTo(query.to);
-  setStartDate(query.date);
-  setReturnDate(query.returnDate || '');
-  setSearching(true);
-  setShowResults(false);
+    from: string;
+    to: string;
+    date: string;
+    returnDate?: string;
+  }) => {
+    setFrom(query.from);
+    setTo(query.to);
+    setStartDate(query.date);
+    setReturnDate(query.returnDate || '');
+    setSearching(true);
+    setShowResults(false);
 
-  try {
-    const res = await fetch('/api/get-flights', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        from: query.from,
-        to: query.to,
-        date: query.date,
-        returnDate: query.returnDate || undefined,
-      }),
-    });
+    try {
+      const res = await fetch('/api/get-flights', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from: query.from,
+          to: query.to,
+          date: query.date,
+          returnDate: query.returnDate || undefined,
+        }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok) {
-      alert(data.message || 'Failed to fetch flights.');
+      if (!res.ok) {
+        alert(data.message || 'Failed to fetch flights.');
+        setSearching(false);
+        return;
+      }
+
+      setOneWayResults(data.oneWay || []);
+      setReturnResults(data.return || []);
+      setShowResults(true);
+    } catch (error) {
+      console.error('Error fetching flights:', error);
+      alert('Something went wrong.');
+    } finally {
       setSearching(false);
-      return;
     }
-
-    setOneWayResults(data.oneWay || []);
-    setReturnResults(data.return || []);
-    setShowResults(true);
-  } catch (error) {
-    console.error('Error fetching flights:', error);
-    alert('Something went wrong.');
-  } finally {
-    setSearching(false);
-  }
-};
+  };
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-0 flex flex-col items-center py-10 overflow-x-hidden">
@@ -216,27 +261,27 @@ const setReturnDate = useFlightStore((state) => state.setReturnDate);
               <button
                 type="reset"
                 className="w-full sm:w-auto px-6 bg-black text-white text-lg py-2 rounded hover:scale-110 duration-100 transition"
-           onClick={() => {
-  setFrom('');
-  setTo('');
-  setStartDate('');
-  setReturnDate('');
-  setOneWayResults([]);
-  setReturnResults([]);
-  setShowResults(false);
-}}
+                onClick={() => {
+                  setFrom('');
+                  setTo('');
+                  setStartDate('');
+                  setReturnDate('');
+                  setOneWayResults([]);
+                  setReturnResults([]);
+                  setShowResults(false);
+                }}
               >
                 Reset Search
               </button>
             </div>
           </form>
 
-{searchHistory.length > 0 && !showResults && (
-  <RecentSearches
-    searchHistory={searchHistory}
-    onSelectSearch={handleRecentSearchClick}
-  />
-)}
+          {searchHistory.length > 0 && !showResults && (
+            <RecentSearches
+              searchHistory={searchHistory}
+              onSelectSearch={handleRecentSearchClick}
+            />
+          )}
         </>
       )}
 

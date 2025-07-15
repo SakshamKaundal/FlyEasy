@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { ArrowRight, ChevronDown, ChevronUp, User, Calendar, CreditCard } from 'lucide-react';
 import { getRandomHexColor } from '@/lib/utils';
 import { useUserInformation } from '@/components/context-api/save-user-context';
+import CalendarPopup from '@/app/updateCalendar';
 
 interface Booking {
   id: string;
@@ -39,6 +40,9 @@ const BookingCard = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedBookings, setExpandedBookings] = useState<Set<string>>(new Set());
+  const [calendarOpen, setCalendarOpen] = useState<boolean>(false);
+  const [activeBookingId, setActiveBookingId] = useState<string | null>(null);
+  const [updateLoading, setUpdateLoading] = useState(false);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -78,6 +82,66 @@ const BookingCard = () => {
     });
   };
 
+  const handleDateUpdate = async (newDate: Date) => {
+    if (!activeBookingId) return;
+
+    setUpdateLoading(true);
+    try {
+      const activeBooking = bookings.find(b => b.id === activeBookingId);
+      if (!activeBooking) {
+        throw new Error('Booking not found');
+      }
+
+      // Get the primary passenger name
+      const primaryPassenger = activeBooking.passengers.find(p => p.is_primary);
+      if (!primaryPassenger) {
+        throw new Error('Primary passenger not found');
+      }
+
+      const response = await fetch('/api/update-ticket', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          passenger_name: primaryPassenger.name,
+          flight_id: activeBooking.flight_id,
+          new_flight_date: newDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        // Update the local state to reflect the change
+        setBookings(prevBookings => 
+          prevBookings.map(booking => 
+            booking.id === activeBookingId 
+              ? {
+                  ...booking,
+                  journey: {
+                    ...booking.journey!,
+                    flight_date: newDate.toISOString().split('T')[0]
+                  }
+                }
+              : booking
+          )
+        );
+        
+        alert('Flight date updated successfully!');
+      } else {
+        throw new Error(result.message || 'Failed to update flight date');
+      }
+    } catch (error) {
+      console.error('Error updating flight date:', error);
+      alert('Failed to update flight date. Please try again.');
+    } finally {
+      setUpdateLoading(false);
+      setCalendarOpen(false);
+      setActiveBookingId(null);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -103,6 +167,9 @@ const BookingCard = () => {
 
   return (
     <div className="space-y-4 mt-4">
+      {/* Common heading for all bookings */}
+      <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Bookings</h2>
+      
       {bookings.map((booking) => {
         const from = booking.journey?.flight_from || 'N/A';
         const to = booking.journey?.flight_to || 'N/A';
@@ -115,45 +182,57 @@ const BookingCard = () => {
             key={booking.id}
             className="bg-white border shadow rounded-xl overflow-hidden transition-all transform hover:shadow-lg hover:border-l-4 hover:border-l-green-500 w-full"
           >
-            {/* Main booking card */}
-            <div className="px-4 py-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 min-w-0">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full min-w-0">
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white"
-                    style={{ background: getRandomHexColor() }}
+            <div className="px-4 py-3">
+              <div className="block sm:hidden">
+                <div className="flex items-center justify-between gap-4 mb-4">
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white"
+                      style={{ background: getRandomHexColor() }}
+                    >
+                      {(flight?.company_name || 'U')
+                        .split(' ')
+                        .map((w) => w[0])
+                        .join('')
+                        .toUpperCase()}
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <p className="text-sm font-bold text-gray-800 truncate">
+                        {flight?.flight_number || 'Unknown'}
+                      </p>
+                      <p className="text-xs text-gray-600 italic truncate">
+                        {formatDate(booking.created_at)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => toggleExpanded(booking.id)}
+                    className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors flex-shrink-0"
+                    aria-label={isExpanded ? 'Collapse details' : 'Expand details'}
                   >
-                    {(flight?.company_name || 'U')
-                      .split(' ')
-                      .map((w) => w[0])
-                      .join('')
-                      .toUpperCase()}
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <p className="text-xs text-gray-700 font-semibold">Booking</p>
-                    <p className="text-sm font-bold text-gray-800 truncate">
-                      {flight?.flight_number || 'Unknown'}
-                    </p>
-                    <p className="text-xs text-gray-600 italic truncate">
-                      {formatDate(booking.created_at)}
-                    </p>
-                  </div>
+                    {isExpanded ? (
+                      <ChevronUp className="w-5 h-5 text-gray-600" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-gray-600" />
+                    )}
+                  </button>
                 </div>
 
-                <div className="flex items-center gap-2 flex-grow min-w-0">
-                  <div className="flex flex-col items-start">
-                    <p className="text-sm font-medium">{from}</p>
-                    <p className="text-xs text-gray-500">{formatTime(flight?.departure_time || '')}</p>
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2 flex-grow min-w-0">
+                    <div className="flex flex-col items-start">
+                      <p className="text-sm font-medium">{from}</p>
+                      <p className="text-xs text-gray-500">{formatTime(flight?.departure_time || '')}</p>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-gray-500" />
+                    <div className="flex flex-col items-start">
+                      <p className="text-sm font-medium">{to}</p>
+                      <p className="text-xs text-gray-500">{formatTime(flight?.arrival_time || '')}</p>
+                    </div>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-gray-500" />
-                  <div className="flex flex-col items-start">
-                    <p className="text-sm font-medium">{to}</p>
-                    <p className="text-xs text-gray-500">{formatTime(flight?.arrival_time || '')}</p>
-                  </div>
-                </div>
 
-                <div className="flex items-center justify-between gap-2">
-                  <div className="text-right">
+                  <div className="text-right flex-shrink-0">
                     <p className="text-xs text-gray-500">Class</p>
                     <p className="text-sm font-semibold capitalize">
                       {booking.travel_class || 'N/A'}
@@ -168,25 +247,74 @@ const BookingCard = () => {
                 </div>
               </div>
 
-              {/* Expand/Collapse button */}
-              <button
-                onClick={() => toggleExpanded(booking.id)}
-                className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors flex-shrink-0"
-                aria-label={isExpanded ? 'Collapse details' : 'Expand details'}
-              >
-                {isExpanded ? (
-                  <ChevronUp className="w-5 h-5 text-gray-600" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-gray-600" />
-                )}
-              </button>
+              <div className="hidden sm:flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 min-w-0">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 w-full min-w-0">
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white"
+                      style={{ background: getRandomHexColor() }}
+                    >
+                      {(flight?.company_name || 'U')
+                        .split(' ')
+                        .map((w) => w[0])
+                        .join('')
+                        .toUpperCase()}
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <p className="text-sm font-bold text-gray-800 truncate">
+                        {flight?.flight_number || 'Unknown'}
+                      </p>
+                      <p className="text-xs text-gray-600 italic truncate">
+                        {formatDate(booking.created_at)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 flex-grow min-w-0">
+                    <div className="flex flex-col items-start">
+                      <p className="text-sm font-medium">{from}</p>
+                      <p className="text-xs text-gray-500">{formatTime(flight?.departure_time || '')}</p>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-gray-500" />
+                    <div className="flex flex-col items-start">
+                      <p className="text-sm font-medium">{to}</p>
+                      <p className="text-xs text-gray-500">{formatTime(flight?.arrival_time || '')}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-right">
+                      <p className="text-xs text-gray-500">Class</p>
+                      <p className="text-sm font-semibold capitalize">
+                        {booking.travel_class || 'N/A'}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {passengerCount} Passenger{passengerCount > 1 ? 's' : ''}
+                      </p>
+                      <p className="text-base font-bold text-black italic mt-1">
+                        ₹{booking.total_amount || '--'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => toggleExpanded(booking.id)}
+                  className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 transition-colors flex-shrink-0"
+                  aria-label={isExpanded ? 'Collapse details' : 'Expand details'}
+                >
+                  {isExpanded ? (
+                    <ChevronUp className="w-5 h-5 text-gray-600" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-600" />
+                  )}
+                </button>
+              </div>
             </div>
 
-            {/* Expanded details */}
             {isExpanded && (
               <div className="px-4 pb-4 border-t bg-gray-50">
                 <div className="pt-4 space-y-4">
-                  {/* Flight Details */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <h4 className="font-semibold text-gray-800 flex items-center gap-2">
@@ -222,7 +350,6 @@ const BookingCard = () => {
                     </div>
                   </div>
 
-                  {/* Passengers */}
                   <div className="space-y-2">
                     <h4 className="font-semibold text-gray-800 flex items-center gap-2">
                       <User className="w-4 h-4" />
@@ -253,6 +380,18 @@ const BookingCard = () => {
                           </div>
                         </div>
                       ))}
+                      <div className="pt-4">
+                        <button
+                          onClick={() => {
+                            setActiveBookingId(booking.id);
+                            setCalendarOpen(true);
+                          }}
+                          disabled={updateLoading}
+                          className="bg-black text-white px-4 py-2 rounded-md text-sm hover:scale-95 transform duration-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {updateLoading ? 'Updating...' : 'Edit Flight'}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -261,6 +400,19 @@ const BookingCard = () => {
           </div>
         );
       })}
+      
+      {calendarOpen && (
+        <CalendarPopup
+          isOpen={calendarOpen}
+          onClose={() => {
+            setCalendarOpen(false);
+            setActiveBookingId(null);
+          }}
+          onDateSelect={handleDateUpdate}
+          bookingId={activeBookingId}
+          
+        />
+      )}
     </div>
   );
 };

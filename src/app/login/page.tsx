@@ -10,6 +10,7 @@ import VerifyOtp from "./OtpVerification";
 import { useUserInformation } from "@/components/context-api/save-user-context";
 import { useCheckUserExists } from "@/components/hooks/useCheckExistingUsers";
 import { v4 as uuidv4 } from 'uuid';
+import ErrorModal from "../error";
 
 const Page = () => {
   const router = useRouter();
@@ -22,6 +23,7 @@ const Page = () => {
   const [showOtpVerification, setShowOtpVerification] = useState(false);
   const [currentAuthPayload, setCurrentAuthPayload] = useState<{ email: string; password: string } | null>(null);
   const [buttonLoading, setButtonLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(""); // ✅ error state
 
   const { isExistingUser } = useCheckUserExists(email);
   const [userVerified, setUserVerified] = useState(false);
@@ -41,7 +43,6 @@ const Page = () => {
     return true;
   };
 
-  
   useEffect(() => {
     setUserVerified(isExistingUser);
   }, [isExistingUser]);
@@ -50,9 +51,9 @@ const Page = () => {
     e.preventDefault();
 
     if (!validateEmail(email)) return;
-    if (userVerified && !password) return alert("Please enter your password");
-    if (!userVerified && !confirmPassword) return alert("Please confirm your password");
-    if (!userVerified && password !== confirmPassword) return alert("Passwords do not match");
+    if (userVerified && !password) return setErrorMessage("Please enter your password");
+    if (!userVerified && !confirmPassword) return setErrorMessage("Please confirm your password");
+    if (!userVerified && password !== confirmPassword) return setErrorMessage("Passwords do not match");
 
     setButtonLoading(true);
 
@@ -89,10 +90,10 @@ const Page = () => {
       setShowOtpVerification(true);
     } catch (err) {
       if (err instanceof Error) {
-        alert(err.message);
-        console.error(err);
+        setErrorMessage(err.message); 
+       
       } else {
-        alert("An unknown error occurred.");
+        setErrorMessage("An unknown error occurred.");
         console.error(err);
       }
     } finally {
@@ -117,19 +118,20 @@ const Page = () => {
           throw new Error(data.message || "Token setup failed");
         }
 
-      setUser({
-  name: currentAuthPayload.email.split("@")[0],
-  email: currentAuthPayload.email,
-  id: uuidv4(),
-});
+        setUser({
+          name: currentAuthPayload.email.split("@")[0],
+          email: currentAuthPayload.email,
+          id: uuidv4(),
+        });
 
+        localStorage.setItem("email", email);
         router.push(`/user`);
       } catch (err) {
-        alert("Token setup failed");
+        setErrorMessage("Token setup failed");
         console.error(err);
       }
     } else {
-      alert("Incorrect OTP");
+      setErrorMessage("Incorrect OTP");
     }
   };
 
@@ -138,88 +140,93 @@ const Page = () => {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row w-full h-screen bg-[#FDFDFD] overflow-hidden">
-      {/* Left Section with Animation */}
-      <div
-        className="w-full lg:w-1/2 h-full flex items-center justify-center p-4"
-        style={{
-          backgroundImage: `url(${BgCurves.src})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        <LoginAnimation />
+    <>
+      {/* ✅ Error Modal */}
+      {errorMessage && <ErrorModal message={errorMessage} onClose={() => setErrorMessage("")} />}
+
+      <div className="flex flex-col lg:flex-row w-full h-screen bg-[#FDFDFD] overflow-hidden">
+        {/* Left Section with Animation */}
+        <div
+          className="w-full lg:w-1/2 h-full flex items-center justify-center p-4"
+          style={{
+            backgroundImage: `url(${BgCurves.src})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        >
+          <LoginAnimation />
+        </div>
+
+        {/* Right Section with Form or OTP */}
+        <div className="w-full lg:w-1/2 h-full flex items-center justify-center p-4 overflow-hidden">
+          {showOtpVerification ? (
+            <VerifyOtp onVerifyComplete={handleVerifyOtp} regenerateOtp={regenerateOtp} />
+          ) : (
+            <div className="text-center w-full max-w-md max-h-[95vh] overflow-auto">
+              <p className="font-semibold mt-4">Please login to continue</p>
+              <form onSubmit={handleSubmit} className="flex flex-col text-left mt-6">
+                <label className="text-base my-2">Email</label>
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    validateEmail(e.target.value);
+                  }}
+                  placeholder="Enter your email"
+                  className="h-12 w-full"
+                />
+                {emailError && (
+                  <p role="alert" className="text-xs text-destructive">
+                    {emailError}
+                  </p>
+                )}
+
+                {userVerified ? (
+                  <>
+                    <label className="my-2">Password</label>
+                    <Input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="h-12 w-full text-muted-foreground"
+                      placeholder="Enter your password"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <label className="my-2">Password</label>
+                    <Input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="h-12 w-full text-muted-foreground"
+                      placeholder="Create password"
+                    />
+                    <label className="my-2">Confirm Password</label>
+                    <Input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="h-12 w-full text-muted-foreground"
+                      placeholder="Confirm password"
+                    />
+                  </>
+                )}
+
+                <Button
+                  className="bg-primary px-4 py-3 border rounded-lg my-4 w-full sm:w-[180px]"
+                  disabled={buttonLoading}
+                  type="submit"
+                >
+                  {buttonLoading ? "Loading..." : "Submit"}
+                </Button>
+              </form>
+            </div>
+          )}
+        </div>
       </div>
-
-      {/* Right Section with Form or OTP */}
-      <div className="w-full lg:w-1/2 h-full flex items-center justify-center p-4 overflow-hidden">
-        {showOtpVerification ? (
-          <VerifyOtp onVerifyComplete={handleVerifyOtp} regenerateOtp={regenerateOtp} />
-        ) : (
-          <div className="text-center w-full max-w-md max-h-[95vh] overflow-auto">
-            <p className="font-semibold mt-4">Please login to continue</p>
-            <form onSubmit={handleSubmit} className="flex flex-col text-left mt-6">
-              <label className="text-base my-2">Email</label>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  validateEmail(e.target.value);
-                }}
-                placeholder="Enter your email"
-                className="h-12 w-full"
-              />
-              {emailError && (
-                <p role="alert" className="text-xs text-destructive">
-                  {emailError}
-                </p>
-              )}
-
-              {userVerified ? (
-                <>
-                  <label className="my-2">Password</label>
-                  <Input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="h-12 w-full text-muted-foreground"
-                    placeholder="Enter your password"
-                  />
-                </>
-              ) : (
-                <>
-                  <label className="my-2">Password</label>
-                  <Input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="h-12 w-full text-muted-foreground"
-                    placeholder="Create password"
-                  />
-                  <label className="my-2">Confirm Password</label>
-                  <Input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="h-12 w-full text-muted-foreground"
-                    placeholder="Confirm password"
-                  />
-                </>
-              )}
-
-              <Button
-                className="bg-primary px-4 py-3 border rounded-lg my-4 w-full sm:w-[180px]"
-                disabled={buttonLoading}
-                type="submit"
-              >
-                {buttonLoading ? "Loading..." : "Submit"}
-              </Button>
-            </form>
-          </div>
-        )}
-      </div>
-    </div>
+    </>
   );
 };
 
