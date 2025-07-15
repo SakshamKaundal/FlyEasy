@@ -37,7 +37,6 @@ const Updates = () => {
           
         case 'update':
           console.log('📦 Booking update:', message.data);
-          // Add new updates to the state
           setUpdates(prev => [...message.data.map((update: { id: string; updated_at: string }) => ({
             ...update,
             timestamp: message.timestamp
@@ -49,7 +48,6 @@ const Updates = () => {
           break;
           
         default:
-          // Handle legacy format (your original data structure)
           if (Array.isArray(message)) {
             setUpdates(prev => [...message.map((update: { id: string; updated_at: string }) => ({
               ...update,

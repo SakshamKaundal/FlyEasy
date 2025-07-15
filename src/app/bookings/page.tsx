@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { ArrowRight, ChevronDown, ChevronUp, User, Calendar, CreditCard } from 'lucide-react';
 import { getRandomHexColor } from '@/lib/utils';
-import { useUserInformation } from '@/components/context-api/save-user-context';
 import CalendarPopup from '@/app/updateCalendar';
 
 interface Booking {
@@ -36,7 +35,6 @@ interface Booking {
 }
 
 const BookingCard = () => {
-  const { user } = useUserInformation();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedBookings, setExpandedBookings] = useState<Set<string>>(new Set());
@@ -46,12 +44,20 @@ const BookingCard = () => {
 
   useEffect(() => {
     const fetchBookings = async () => {
-      if (!user?.email) return;
+      // Get email from localStorage instead of context API
+      const userEmail = localStorage.getItem('email');
+      
+      if (!userEmail) {
+        console.warn('No email found in localStorage');
+        setLoading(false);
+        return;
+      }
+
       try {
         const res = await fetch('/api/get-bookings', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: user.email }),
+          body: JSON.stringify({ email: userEmail }),
         });
 
         const data = await res.json();
@@ -68,7 +74,7 @@ const BookingCard = () => {
     };
 
     fetchBookings();
-  }, [user?.email]);
+  }, []);
 
   const toggleExpanded = (bookingId: string) => {
     setExpandedBookings(prev => {
