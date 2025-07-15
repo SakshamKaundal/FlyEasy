@@ -10,9 +10,12 @@ const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin']
 export const metadata = {
   title: 'Flight Booking',
   description: 'Flight Bookings',
-  themeColor: '#000000',
+ 
 };
 
+export const viewport = {
+  themeColor: '#fff',
+};
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">

@@ -1,10 +1,10 @@
-"use client";
+'use client'
+import dynamic from 'next/dynamic';
 
-import SwaggerUI from "swagger-ui-react";
-import "swagger-ui-react/swagger-ui.css";
+const SwaggerClient = dynamic(() => import('./swagger-client'), {
+  ssr: false, 
+});
 
-export default function SwaggerDocsPage() {
-  return (
-    <SwaggerUI url="/swagger.yaml" />
-  );
+export default function DocsPage() {
+  return <SwaggerClient />;
 }

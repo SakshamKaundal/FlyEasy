@@ -92,16 +92,77 @@ const BookingForm = () => {
   const [searchHistory, setSearchHistory] = useState<
     { id?: number; query: { from: string; to: string; date: string; returnDate?: string } }[]
   >([]);
+  const [userContextUpdated, setUserContextUpdated] = useState(false);
 
-  const { user, setIsRoundTrip } = useUserInformation();
+  const { user, setUser, setIsRoundTrip } = useUserInformation();
+
+  // Update user context when component mounts
+  useEffect(() => {
+    const updateUserFromLocalStorage = () => {
+      try {
+        const storedUser = localStorage.getItem('user');
+        console.log('Stored user from localStorage:', storedUser); // Debug log
+        
+        if (storedUser) {
+          const parsedUser = JSON.parse(storedUser);
+          console.log('Parsed user:', parsedUser); // Debug log
+          console.log('Current user in context:', user); // Debug log
+          
+          // Always update the user context with latest localStorage data
+          if (setUser && parsedUser.email) {
+            setUser(parsedUser);
+            setUserContextUpdated(true);
+            console.log('User context updated with:', parsedUser); // Debug log
+          }
+        } else {
+          setUserContextUpdated(true); // Mark as updated even if no user found
+        }
+      } catch (error) {
+        console.error('Error parsing user from localStorage:', error);
+        setUserContextUpdated(true);
+      }
+    };
+
+    // Run immediately on mount
+    updateUserFromLocalStorage();
+    
+    // Also run after a small delay to ensure localStorage is fully loaded
+    const timeoutId = setTimeout(updateUserFromLocalStorage, 100);
+    
+    return () => clearTimeout(timeoutId);
+  }, [setUser]); // Include setUser in dependencies
 
   useEffect(() => {
+    // Only fetch history after user context has been updated
+    if (!userContextUpdated) return;
+    
     const fetchHistory = async () => {
-      const history = await getSearchHistoryByEmail(user?.email || 'guest');
+      // Get user email from context first, then fallback to localStorage
+      let userEmail = user?.email;
+      
+      if (!userEmail) {
+        try {
+          const storedUser = localStorage.getItem('user');
+          if (storedUser) {
+            const parsedUser = JSON.parse(storedUser);
+            userEmail = parsedUser.email;
+          }
+        } catch (error) {
+          console.error('Error getting user email from localStorage:', error);
+        }
+      }
+      
+      // Use 'guest' as final fallback
+      const emailToUse = userEmail || 'guest';
+      console.log('Fetching search history for email:', emailToUse); // Debug log
+      
+      const history = await getSearchHistoryByEmail(emailToUse);
       setSearchHistory(history.reverse().slice(0, 5));
     };
+    
+    // Always fetch history when component mounts or user changes
     fetchHistory();
-  }, [user?.email]);
+  }, [user?.email, userContextUpdated]); // Re-run when user email changes or context is updated
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,11 +191,23 @@ const BookingForm = () => {
       setTimeout(async () => {
         setOneWayResults(data.oneWay || []);
         setReturnResults(data.return || []);
-        await saveSearch(user?.email || 'guest', { from, to, date: startDate, returnDate }, {
+        
+        const userEmail = user?.email || 
+          (() => {
+            try {
+              const storedUser = localStorage.getItem('user');
+              return storedUser ? JSON.parse(storedUser).email : 'guest';
+            } catch {
+              return 'guest';
+            }
+          })();
+
+        await saveSearch(userEmail, { from, to, date: startDate, returnDate }, {
           oneWay: data.oneWay,
           return: data.return,
         });
-        const history = await getSearchHistoryByEmail(user?.email || 'guest');
+        
+        const history = await getSearchHistoryByEmail(userEmail);
         setSearchHistory(history.reverse().slice(0, 5));
         setSearching(false);
         setShowResults(true);

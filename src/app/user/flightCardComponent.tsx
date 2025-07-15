@@ -281,55 +281,57 @@ const FlightResults: React.FC<Props> = ({ oneWay, returnFlights }) => {
       )}
 
       {/* Round-trip flights */}
-      {hasOneWay && hasReturn && (
-        <div className="w-full space-y-6">
-          <div className="flex flex-col lg:flex-row gap-6 w-full">
-            <div className="w-full lg:w-1/2">
-              <h3 className="text-lg font-semibold mb-4 text-gray-800">Outbound Flights</h3>
-              <div className="space-y-4">
-                {oneWay.map((flight, index) => (
-                  <div 
-                    key={`outbound-${flight.flight_id}-${index}`} 
-                    className={`cursor-pointer ${selectedOutbound?.flight_id === flight.flight_id ? 'ring-2 ring-blue-500 ring-offset-2 rounded-xl' : ''}`}
-                  >
-                    <FlightCard 
-                      flight={flight} 
-                      label="" 
-                      full 
-                      showBook={false} 
-                      isOutbound={true}
-                      onFlightSelect={(selectedFlight) => setSelectedOutbound(selectedFlight)}
-                      onClassUpdate={(travelClass, newFare) => handleOutboundUpdate(flight, travelClass, newFare)}
-                    />
-                  </div>
-                ))}
-              </div>
+    {/* Round-trip flights */}
+{hasOneWay && hasReturn && (
+  <div className="w-full space-y-6">
+    <div className="flex flex-col lg:flex-row gap-6 w-full">
+      {/* Desktop: Normal order, Mobile: Conditional order */}
+      <div className={`w-full lg:w-1/2 ${isMobile && selectedOutbound ? 'order-2' : 'order-1'}`}>
+        <h3 className="text-lg font-semibold mb-4 text-gray-800">Outbound Flights</h3>
+        <div className="space-y-4">
+          {oneWay.map((flight, index) => (
+            <div 
+              key={`outbound-${flight.flight_id}-${index}`} 
+              className={`cursor-pointer ${selectedOutbound?.flight_id === flight.flight_id ? 'ring-2 ring-blue-500 ring-offset-2 rounded-xl' : ''}`}
+            >
+              <FlightCard 
+                flight={flight} 
+                label="" 
+                full 
+                showBook={false} 
+                isOutbound={true}
+                onFlightSelect={(selectedFlight) => setSelectedOutbound(selectedFlight)}
+                onClassUpdate={(travelClass, newFare) => handleOutboundUpdate(flight, travelClass, newFare)}
+              />
             </div>
-            
-            <div className="w-full lg:w-1/2">
-              <h3 className="text-lg font-semibold mb-4 text-gray-800">Return Flights</h3>
-              <div className="space-y-4">
-                {returnFlights.map((flight, index) => (
-                  <div 
-                    key={`return-${flight.flight_id}-${index}`} 
-                    className={`cursor-pointer ${selectedReturn?.flight_id === flight.flight_id ? 'ring-2 ring-green-500 ring-offset-2 rounded-xl' : ''}`}
-                  >
-                    <FlightCard 
-                      flight={flight} 
-                      label="" 
-                      full 
-                      showBook={false} 
-                      isOutbound={false}
-                      onFlightSelect={(selectedFlight) => setSelectedReturn(selectedFlight)}
-                      onClassUpdate={(travelClass, newFare) => handleReturnUpdate(flight, travelClass, newFare)}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
-      )}
+      </div>
+      
+      <div className={`w-full lg:w-1/2 ${isMobile && selectedOutbound ? 'order-1' : 'order-2'}`}>
+        <h3 className="text-lg font-semibold mb-4 text-gray-800">Return Flights</h3>
+        <div className="space-y-4">
+          {returnFlights.map((flight, index) => (
+            <div 
+              key={`return-${flight.flight_id}-${index}`} 
+              className={`cursor-pointer ${selectedReturn?.flight_id === flight.flight_id ? 'ring-2 ring-green-500 ring-offset-2 rounded-xl' : ''}`}
+            >
+              <FlightCard 
+                flight={flight} 
+                label="" 
+                full 
+                showBook={false} 
+                isOutbound={false}
+                onFlightSelect={(selectedFlight) => setSelectedReturn(selectedFlight)}
+                onClassUpdate={(travelClass, newFare) => handleReturnUpdate(flight, travelClass, newFare)}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };
