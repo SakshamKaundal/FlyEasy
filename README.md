@@ -1,5 +1,5 @@
-# Flight Management API - Complete Documentation
--- 
+# Flight Management System
+## Flight Management API - Complete Documentation
 ## Table of Contents
 1. [Authentication APIs](#authentication-apis)
 2. [Flight Search APIs](#flight-search-apis)
