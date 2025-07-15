@@ -1000,3 +1000,139 @@ returnFlights: Flight[]
 
 These state management techniques together offer a smooth and scalable experience across the booking app.
 
+
+# IndexedDB for Storing Recent Flight Searches
+
+This module leverages IndexedDB (via the `idb` library) to persist and retrieve recent flight search data on the client side. It allows storing flight search payloads and corresponding results associated with a user's email.
+
+## Database Configuration
+
+* **Database Name**: `FlightCacheDB`
+* **Object Store Name**: `SearchHistory`
+* **Key Path**: `id` (auto-incremented)
+* **Index**: `email` (used for querying records by user)
+
+---
+
+## Type Definitions
+
+### `SearchPayload`
+
+Represents the user's search input:
+
+```ts
+{
+  from: string;
+  to: string;
+  date: string;
+  returnDate?: string;
+}
+```
+
+### `SearchResult`
+
+Represents the result of the search:
+
+```ts
+{
+  oneWay: Flights[];
+  return: Flights[];
+}
+```
+
+### `SearchHistoryEntry`
+
+Structure of each entry stored in the IndexedDB:
+
+```ts
+{
+  id?: number;
+  email: string;
+  timestamp: number;
+  query: SearchPayload;
+  result: SearchResult;
+}
+```
+
+---
+
+## Functions
+
+### `initDB()`
+
+Initializes the database and creates the object store and index if they don't exist.
+
+```ts
+const initDB = async () => {
+  return await openDB(DB_NAME, 1, {
+    upgrade(db) {
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        const store = db.createObjectStore(STORE_NAME, {
+          keyPath: 'id',
+          autoIncrement: true,
+        });
+        store.createIndex('email', 'email', { unique: false });
+      }
+    },
+  });
+};
+```
+
+### `saveSearch(email, searchPayload, result)`
+
+Saves a new search query and its result for the specified email.
+
+```ts
+const saveSearch = async (
+  email: string,
+  searchPayload: SearchPayload,
+  result: SearchResult
+): Promise<void> => {
+  const db = await initDB();
+  const entry: SearchHistoryEntry = {
+    email,
+    timestamp: Date.now(),
+    query: searchPayload,
+    result,
+  };
+  await db.add(STORE_NAME, entry);
+};
+```
+
+### `getSearchHistoryByEmail(email)`
+
+Fetches all stored search results associated with a given email.
+
+```ts
+const getSearchHistoryByEmail = async (
+  email: string
+): Promise<SearchHistoryEntry[]> => {
+  const db = await initDB();
+  const all = await db.getAllFromIndex(STORE_NAME, 'email');
+  return all.filter((entry) => entry.email === email);
+};
+```
+
+---
+
+## Usage Example
+
+```ts
+await saveSearch('user@example.com', {
+  from: 'DEL',
+  to: 'BOM',
+  date: '2025-08-01',
+}, searchResult);
+
+const history = await getSearchHistoryByEmail('user@example.com');
+console.log(history);
+```
+
+---
+
+## Notes
+
+* The database is initialized each time a read/write operation is performed to ensure consistency.
+* This storage method is useful for caching recent searches and improving user experience without requiring server calls.
+
+
