@@ -849,3 +849,154 @@ Lists all passengers for each booking. A booking can have multiple passengers.
 > This schema is optimized for simplicity and clarity while supporting future scalability.
 
 Feel free to contribute or adapt this database structure for your own flight or booking-based systems.
+
+
+## 🔎 UI State Management Documentation (Zustand, Context API, IndexedDB)
+
+This section of the documentation describes how the UI manages its global state using **Zustand**, **React Context**, and **local persistence** (e.g., IndexedDB via Supabase and client-side hooks). These tools allow for efficient state sharing across components in a clean and scalable way.
+
+---
+
+### 🔍 User Context (React Context API)
+
+We use React's Context API to maintain user session information and whether the booking is a round trip:
+
+```ts
+interface UserInformation {
+  id: string;
+  name: string;
+  email: string;
+}
+```
+
+**Context provides:**
+
+* `user`: holds the currently logged-in user's data
+* `setUser(user)`: sets user information after login/signup
+* `isRoundTrip`: boolean to indicate trip type
+* `setIsRoundTrip(boolean)`: updates round trip status
+
+This is accessible across the app using the custom hook `useUserInformation()`.
+
+---
+
+### 📅 User Existence Check Hook (Supabase + useEffect)
+
+A custom React hook `useCheckUserExists(email)` checks if the given email exists in the Supabase `users` table.
+
+It returns:
+
+* `isExistingUser` (boolean): whether the user exists
+* `checking` (boolean): indicates loading status during the async operation
+
+This is useful for validating login/signup flows.
+
+---
+
+### 🔒 Middleware Authentication
+
+A custom **Next.js middleware** verifies JWT token presence and validity for secure route protection.
+
+* Redirects to `/login` if the token is invalid/missing
+* Redirects to `/user` if a logged-in user visits `/login` or `/signup`
+
+The middleware uses `jose` for decoding JWT and ensures routes are protected using `matcher: ['/:path*']`.
+
+---
+
+## 🤖 Zustand Stores (Global State Management)
+
+### 🏦 useFareStore
+
+Tracks selected fare amounts based on passenger type:
+
+```ts
+fares: { infant, child, adult }
+```
+
+* `setFares(fares)` – update fare values
+* `resetFares()` – resets all to zero
+
+---
+
+### 🌍 useBookingStore
+
+Manages complete booking data (selected flight, class, and passengers):
+
+```ts
+selectedFlight: FlightInfo | null
+selectedClass: 'economy' | 'premium' | 'business'
+passengerCount: number
+passengers: Passenger[]
+```
+
+* `setSelectedFlight(flight)` – choose flight
+* `setSelectedClass(class)` – change travel class
+* `setPassengerCount(count)` – sets count & auto-generates empty passengers
+* `setPassenger(index, data)` – updates individual passenger
+* `resetBooking()` – clears all
+
+---
+
+### 🎠 useDualFareStore
+
+Handles fare & flight data for **round trips** (outbound and return):
+
+```ts
+outboundFares: FareMap
+returnFares: FareMap
+outboundFlight: FlightDetails | null
+returnFlight: FlightDetails | null
+```
+
+* `setOutboundFares(fares, flight)`
+* `setReturnFares(fares, flight)`
+* `resetFares()` – clears all
+
+---
+
+### ✈️ useSelectedFlightsStore
+
+Keeps track of outbound and return flights **after search & before booking**:
+
+```ts
+outboundFlight: Flight | null
+returnFlight: Flight | null
+```
+
+* `setOutboundFlight(flight)` – store outbound selection
+* `setReturnFlight(flight)` – store return selection
+* `clearFlights()` – reset both
+
+---
+
+### 🛍️ useFlightStore
+
+Tracks search input values and search results:
+
+```ts
+from: string
+to: string
+startDate: string
+returnDate: string
+oneWay: Flight[]
+returnFlights: Flight[]
+```
+
+* `setFrom(value)` – departure city
+* `setTo(value)` – arrival city
+* `setStartDate(date)` – one-way travel date
+* `setReturnDate(date)` – return travel date
+* `setResults({ oneWay, return })` – stores searched flight options
+
+---
+
+## 🌐 Summary
+
+* **Context API** manages user login state and trip type
+* **Zustand** handles various slices of state like fares, bookings, flights, and passenger data
+* **Supabase** is used for data verification and local data access
+* **Middleware** ensures protected routes
+
+These state management techniques together offer a smooth and scalable experience across the booking app.
+
