@@ -17,7 +17,7 @@ export async function middleware(request: NextRequest) {
       }
 
       return NextResponse.next();
-    } catch (err) {
+    } catch  {
       const response = NextResponse.redirect(new URL('/login', request.url));
       response.cookies.set('token', '', { maxAge: 0 });
       return response;
