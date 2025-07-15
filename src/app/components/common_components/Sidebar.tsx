@@ -2,7 +2,7 @@
 
 import {
   House, LogOut, Menu as MenuIcon, X as CloseIcon, PhoneForwarded,
-  Settings, LucideIcon, NotebookPen, BellRing, BookLock
+   LucideIcon, NotebookPen, BellRing
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
