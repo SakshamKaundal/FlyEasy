@@ -1,4 +1,4 @@
-'use server';
+"use server";
 
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/superbaseClient";
@@ -23,7 +23,27 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: error.message }, { status: 401 });
     }
 
-    return NextResponse.json({ message: "Login successful", user: data.user }, { status: 200 });
+    // Fetch user profile from 'users' table
+    const { data: profile, error: profileError } = await supabase
+      .from("users")
+      .select("is_admin")
+      .eq("id", data.user.id)
+      .single();
+
+    if (profileError) {
+      console.error("Profile fetch error:", profileError.message);
+    }
+
+    const is_admin = profile?.is_admin === true;
+
+    return NextResponse.json(
+      {
+        message: "Login successful",
+        user: data.user,
+        is_admin,
+      },
+      { status: 200 }
+    );
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Login failed";
     return NextResponse.json({ message }, { status: 500 });

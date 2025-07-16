@@ -12,7 +12,7 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const pathname = usePathname();
 
-  const layoutPaths = ["/dashboard", "/user", "/payments", "/bookings", "/updates", "/flights", "/contact"];
+  const layoutPaths = ["/dashboard", "/user", "/payments", "/bookings", "/updates", "/flights", "/contact" , "/admin"];
   const showLayout = layoutPaths.some((path) => pathname.startsWith(path));
 
   return (

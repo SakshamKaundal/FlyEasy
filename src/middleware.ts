@@ -5,7 +5,7 @@ export async function middleware(request: NextRequest) {
   const token = request.cookies.get('token')?.value;
   const { pathname } = request.nextUrl;
 
-  const isPublicRoute = pathname === '/login' || pathname === '/signup';
+  const isPublicRoute = pathname === '/login' ;
 
   if (token) {
     try {

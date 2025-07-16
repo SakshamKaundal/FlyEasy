@@ -2,7 +2,7 @@
 
 import {
   House, LogOut, Menu as MenuIcon, X as CloseIcon, PhoneForwarded,
-   LucideIcon, NotebookPen, BellRing
+  LucideIcon, NotebookPen, BellRing
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
@@ -18,43 +18,53 @@ interface MenuItem {
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isClient, setIsClient] = useState(false); 
+  const [isClient, setIsClient] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     setIsClient(true);
+    const adminFlag = localStorage.getItem("admin");
+    setIsAdmin(adminFlag === "true");
   }, []);
 
-  const Menu: MenuItem[] = [
+  const baseMenu: MenuItem[] = [
     { label: 'Home', icon: House, href: '/user' },
     { label: 'My Bookings', icon: NotebookPen, href: '/bookings' },
     { label: 'Flight Updates', icon: BellRing, href: '/updates' },
     { label: 'Contact Us', icon: PhoneForwarded, href: '/contact' },
   ];
 
-  const handleLogout = async () => {
-    await LogoutFunction();
-    router.push('/login');
-  };
+  const Menu: MenuItem[] = isAdmin
+    ? [...baseMenu, { label: 'Dashboard', icon: PhoneForwarded, href: '/admin' }]
+    : baseMenu;
+
+const handleLogout = async () => {
+  localStorage.removeItem("email");
+  localStorage.removeItem("admin");
+  await LogoutFunction();
+  router.push('/login');
+};
+
 
   return (
     <>
-     
       <button
         className="lg:hidden fixed top-4 left-4 z-50 bg-white p-2 rounded-md shadow-md"
         onClick={() => setIsOpen(true)}
       >
-        <MenuIcon className='shadow-2xl hover:scale-75 transform duration-75'/>
+        <MenuIcon className='shadow-2xl hover:scale-75 transform duration-75' />
       </button>
 
       {isOpen && (
         <div
-          className="lg:hidden fixed inset-0  bg-opacity-40 z-40"
+          className="lg:hidden fixed inset-0 bg-opacity-40 z-40"
           style={{ backgroundColor: "#101010CC" }}
           onClick={() => setIsOpen(false)}
         />
       )}
 
+      {/* Sidebar for large screens */}
       <div className="hidden lg:flex fixed top-0 left-0 z-50 h-screen w-56 bg-white flex-col justify-between border-r border-gray-200">
         <div className="px-4 mt-[80px]">
           {isClient && (
@@ -85,6 +95,7 @@ const Sidebar = () => {
         </div>
       </div>
 
+      {/* Sidebar for mobile screens */}
       <div
         className={clsx(
           "lg:hidden fixed top-0 left-0 z-50 h-screen w-16 bg-white flex flex-col justify-between border-r border-gray-200 transition-transform duration-300",
@@ -119,7 +130,6 @@ const Sidebar = () => {
           )}
         </div>
 
-        
         <div
           className="flex justify-center items-center p-3 border-t border-gray-200 cursor-pointer hover:bg-gray-100"
           onClick={handleLogout}

@@ -3,14 +3,21 @@
 import { useEffect, useRef } from "react";
 import Calendar from "react-calendar";
 import 'react-calendar/dist/Calendar.css';
+
 interface CalendarPopupProps {
   isOpen: boolean;
   onClose: () => void;
   onDateSelect: (date: Date) => void;
   bookingId: string | null;
+  currentFlightDate?: string; // Add this prop to receive current flight date
 }
 
-const CalendarPopup: React.FC<CalendarPopupProps> = ({ isOpen, onClose, onDateSelect }) => {
+const CalendarPopup: React.FC<CalendarPopupProps> = ({ 
+  isOpen, 
+  onClose, 
+  onDateSelect, 
+  currentFlightDate 
+}) => {
   const modalRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -31,9 +38,26 @@ const CalendarPopup: React.FC<CalendarPopupProps> = ({ isOpen, onClose, onDateSe
 
   if (!isOpen) return null;
 
+  // Get minimum selectable date (day after current flight date)
+  const getMinDate = () => {
+    if (!currentFlightDate) return new Date();
+    
+    const currentDate = new Date(currentFlightDate);
+    const minDate = new Date(currentDate);
+    minDate.setDate(currentDate.getDate() + 1); // Next day after current flight date
+    return minDate;
+  };
+
+  // Disable dates before the minimum date
+  const tileDisabled = ({ date }: { date: Date }) => {
+    const minDate = getMinDate();
+    return date < minDate;
+  };
+
   return (
-    <div className="fixed inset-0  bg-opacity-40 flex justify-center items-center z-50"
-     style={{ backgroundColor: "#101010CC" }}
+    <div 
+      className="fixed inset-0 bg-opacity-40 flex justify-center items-center z-50"
+      style={{ backgroundColor: "#101010CC" }}
     >
       <div
         ref={modalRef}
@@ -45,19 +69,25 @@ const CalendarPopup: React.FC<CalendarPopupProps> = ({ isOpen, onClose, onDateSe
             onDateSelect(date as Date);
             onClose();
           }}
+          minDate={getMinDate()}
+          tileDisabled={tileDisabled}
+          className="w-full"
         />
-       <div className="flex justify-center items-center gap-5 mt-4">
-  <button
-    onClick={onClose}
-    className="text-sm text-gray-600 hover:text-black"
-  >
-    Cancel
-  </button>
-  <button className="bg-black text-white px-4 py-2 rounded-md text-sm hover:scale-95 transform transition duration-100">
-    Update
-  </button>
-</div>
 
+        <div className="flex justify-center items-center gap-5 mt-4">
+          <button
+            onClick={onClose}
+            className="text-sm text-gray-600 hover:text-black"
+          >
+            Cancel
+          </button>
+          <button 
+            onClick={onClose}
+            className="bg-black text-white px-4 py-2 rounded-md text-sm hover:scale-95 transform transition duration-100"
+          >
+            Update
+          </button>
+        </div>
       </div>
     </div>
   );

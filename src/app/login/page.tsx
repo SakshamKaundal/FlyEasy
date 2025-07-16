@@ -23,7 +23,7 @@ const Page = () => {
   const [showOtpVerification, setShowOtpVerification] = useState(false);
   const [currentAuthPayload, setCurrentAuthPayload] = useState<{ email: string; password: string } | null>(null);
   const [buttonLoading, setButtonLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(""); // ✅ error state
+  const [errorMessage, setErrorMessage] = useState("");
 
   const { isExistingUser } = useCheckUserExists(email);
   const [userVerified, setUserVerified] = useState(false);
@@ -84,14 +84,16 @@ const Page = () => {
         if (!response.ok) {
           throw new Error(data.message || "Login failed");
         }
+
+        // ✅ Store is_admin in localStorage as "admin"
+        localStorage.setItem("admin", JSON.stringify(data.is_admin));
       }
 
       setCurrentAuthPayload({ email, password });
       setShowOtpVerification(true);
     } catch (err) {
       if (err instanceof Error) {
-        setErrorMessage(err.message); 
-       
+        setErrorMessage(err.message);
       } else {
         setErrorMessage("An unknown error occurred.");
         console.error(err);
@@ -141,11 +143,9 @@ const Page = () => {
 
   return (
     <>
-      {/* ✅ Error Modal */}
       {errorMessage && <ErrorModal message={errorMessage} onClose={() => setErrorMessage("")} />}
 
       <div className="flex flex-col lg:flex-row w-full h-screen bg-[#FDFDFD] overflow-hidden">
-        {/* Left Section with Animation */}
         <div
           className="w-full lg:w-1/2 h-full flex items-center justify-center p-4"
           style={{
@@ -157,7 +157,6 @@ const Page = () => {
           <LoginAnimation />
         </div>
 
-        {/* Right Section with Form or OTP */}
         <div className="w-full lg:w-1/2 h-full flex items-center justify-center p-4 overflow-hidden">
           {showOtpVerification ? (
             <VerifyOtp onVerifyComplete={handleVerifyOtp} regenerateOtp={regenerateOtp} />
