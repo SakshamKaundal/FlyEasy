@@ -2,7 +2,7 @@
 
 import {
   House, LogOut, Menu as MenuIcon, X as CloseIcon, PhoneForwarded,
-  LucideIcon, NotebookPen, BellRing
+  LucideIcon, NotebookPen, BellRing ,LayoutDashboard
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
@@ -36,7 +36,7 @@ const Sidebar = () => {
   ];
 
   const Menu: MenuItem[] = isAdmin
-    ? [...baseMenu, { label: 'Dashboard', icon: PhoneForwarded, href: '/admin' }]
+    ? [...baseMenu, { label: 'Dashboard', icon: LayoutDashboard, href: '/admin' }]
     : baseMenu;
 
 const handleLogout = async () => {
