@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export type TravelClass = 'economy' | 'premium' | 'business';
 export type PassengerType = 'infant' | 'adult';
@@ -35,35 +36,42 @@ interface BookingState {
   resetBooking: () => void;
 }
 
-export const useBookingStore = create<BookingState>((set) => ({
-  selectedFlight: null,
-  selectedClass: 'economy',
-  passengerCount: 1,
-  passengers: [],
-
-  setSelectedFlight: (flight) => set({ selectedFlight: flight }),
-  setSelectedClass: (travelClass) => set({ selectedClass: travelClass }),
-  setPassengerCount: (count) =>
-    set(() => ({
-      passengerCount: count,
-      passengers: Array.from({ length: count }, () => ({
-        name: '',
-        age: 0,
-        gender: 'male',
-        passenger_type: 'adult',
-      })),
-    })),
-  setPassenger: (index, passenger) =>
-    set((state) => {
-      const updated = [...state.passengers];
-      updated[index] = passenger;
-      return { passengers: updated };
-    }),
-  resetBooking: () =>
-    set({
+export const useBookingStore = create<BookingState>()(
+  persist(
+    (set) => ({
       selectedFlight: null,
       selectedClass: 'economy',
       passengerCount: 1,
       passengers: [],
+
+      setSelectedFlight: (flight) => set({ selectedFlight: flight }),
+      setSelectedClass: (travelClass) => set({ selectedClass: travelClass }),
+      setPassengerCount: (count) =>
+        set(() => ({
+          passengerCount: count,
+          passengers: Array.from({ length: count }, () => ({
+            name: '',
+            age: 0,
+            gender: 'male',
+            passenger_type: 'adult',
+          })),
+        })),
+      setPassenger: (index, passenger) =>
+        set((state) => {
+          const updated = [...state.passengers];
+          updated[index] = passenger;
+          return { passengers: updated };
+        }),
+      resetBooking: () =>
+        set({
+          selectedFlight: null,
+          selectedClass: 'economy',
+          passengerCount: 1,
+          passengers: [],
+        }),
     }),
-}));
+    {
+      name: 'booking-storage',
+    }
+  )
+);

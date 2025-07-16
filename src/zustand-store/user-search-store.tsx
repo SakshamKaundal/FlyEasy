@@ -1,5 +1,6 @@
-import {  TravelClass } from '@/app/types/application.types';
+import { TravelClass } from '@/app/types/application.types';
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export interface Flight {
   flight_id: string;
@@ -29,16 +30,30 @@ interface FlightSearchState {
   setResults: (data: { oneWay: Flight[]; return: Flight[] }) => void;
 }
 
-export const useFlightStore = create<FlightSearchState>((set) => ({
-  from: '',
-  to: '',
-  startDate: '',
-  returnDate: '',
-  oneWay: [],
-  returnFlights: [],
-  setFrom: (from) => set({ from }),
-  setTo: (to) => set({ to }),
-  setStartDate: (date) => set({ startDate: date }),
-  setReturnDate: (date) => set({ returnDate: date }),
-  setResults: (data) => set({ oneWay: data.oneWay || [], returnFlights: data.return || [] }),
-}));
+export const useFlightStore = create<FlightSearchState>()(
+  persist(
+    (set) => ({
+      from: '',
+      to: '',
+      startDate: '',
+      returnDate: '',
+      oneWay: [],
+      returnFlights: [],
+      setFrom: (from) => set({ from }),
+      setTo: (to) => set({ to }),
+      setStartDate: (date) => set({ startDate: date }),
+      setReturnDate: (date) => set({ returnDate: date }),
+      setResults: (data) => set({ oneWay: data.oneWay || [], returnFlights: data.return || [] }),
+    }),
+    {
+      name: 'flight-search-storage', // unique name for localStorage key
+      // Optional: Only persist search parameters, not results
+      // partialize: (state) => ({
+      //   from: state.from,
+      //   to: state.to,
+      //   startDate: state.startDate,
+      //   returnDate: state.returnDate
+      // }),
+    }
+  )
+);

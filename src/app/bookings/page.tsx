@@ -88,65 +88,56 @@ const BookingCard = () => {
     });
   };
 
-  const handleDateUpdate = async (newDate: Date) => {
-    if (!activeBookingId) return;
+const handleDateUpdate = async (newDate: Date) => {
+  if (!activeBookingId) return;
 
-    setUpdateLoading(true);
-    try {
-      const activeBooking = bookings.find(b => b.id === activeBookingId);
-      if (!activeBooking) {
-        throw new Error('Booking not found');
-      }
+  const formattedDate = `${newDate.getFullYear()}-${String(newDate.getMonth() + 1).padStart(2, '0')}-${String(newDate.getDate()).padStart(2, '0')}`;
 
-      // Get the primary passenger name
-      const primaryPassenger = activeBooking.passengers.find(p => p.is_primary);
-      if (!primaryPassenger) {
-        throw new Error('Primary passenger not found');
-      }
+  setUpdateLoading(true);
+  try {
+    const activeBooking = bookings.find(b => b.id === activeBookingId);
+    if (!activeBooking) throw new Error('Booking not found');
 
-      const response = await fetch('/api/update-ticket', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          passenger_name: primaryPassenger.name,
-          flight_id: activeBooking.flight_id,
-          new_flight_date: newDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
-        }),
-      });
+    const response = await fetch('/api/update-ticket', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        payment_id: activeBooking.payment_id,
+        flight_number: activeBooking.flight?.flight_number,
+        new_flight_date: formattedDate,
+      }),
+    });
 
-      const result = await response.json();
+    const result = await response.json();
 
-      if (response.ok) {
-        // Update the local state to reflect the change
-        setBookings(prevBookings => 
-          prevBookings.map(booking => 
-            booking.id === activeBookingId 
-              ? {
-                  ...booking,
-                  journey: {
-                    ...booking.journey!,
-                    flight_date: newDate.toISOString().split('T')[0]
-                  }
-                }
-              : booking
-          )
-        );
-        
-        alert('Flight date updated successfully!');
-      } else {
-        throw new Error(result.message || 'Failed to update flight date');
-      }
-    } catch (error) {
-      console.error('Error updating flight date:', error);
-      alert('Failed to update flight date. Please try again.');
-    } finally {
-      setUpdateLoading(false);
-      setCalendarOpen(false);
-      setActiveBookingId(null);
+    if (response.ok) {
+      setBookings(prev => prev.map(b =>
+        b.id === activeBookingId
+          ? {
+              ...b,
+              journey: {
+                ...b.journey!,
+                flight_date: formattedDate, // ✅ use the same fixed value here
+              },
+            }
+          : b
+      ));
+      alert('Flight date updated successfully!');
+    } else {
+      throw new Error(result.message || 'Failed to update flight date');
     }
-  };
+  } catch (error) {
+    console.error('Error updating flight date:', error);
+    alert('Failed to update flight date. Please try again.');
+  } finally {
+    setUpdateLoading(false);
+    setCalendarOpen(false);
+    setActiveBookingId(null);
+  }
+};
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {

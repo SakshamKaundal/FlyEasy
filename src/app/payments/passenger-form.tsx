@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useUserInformation } from '@/components/context-api/save-user-context';
 import { useDualFareStore } from '@/zustand-store/round-trip-fares';
 import { useSelectedFlightsStore } from '@/zustand-store/selected-flights-store';
@@ -55,6 +55,8 @@ const PassengerPaymentForm = () => {
   } = useDualFareStore();
   const selectedFlightsStore = useSelectedFlightsStore();
 
+  // Add hydration state to handle persistence loading
+  const [isHydrated, setIsHydrated] = useState(false);
   const [passengers, setPassengers] = useState<Passenger[]>([
     { name: '', age: '', gender: '', passenger_type: 'adult' },
   ]);
@@ -65,6 +67,11 @@ const PassengerPaymentForm = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [showValidation, setShowValidation] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Handle hydration for persistent stores
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   const getFlightData = () => {
     if (isRoundTrip) {
@@ -81,6 +88,41 @@ const PassengerPaymentForm = () => {
   };
 
   const { outbound: currentOutboundFlight, return: currentReturnFlight } = getFlightData();
+
+  // Show loading state until hydration is complete
+  if (!isHydrated) {
+    return (
+      <div className="max-w-5xl mx-auto mt-6">
+        <div className="bg-white shadow-md rounded-lg p-6">
+          <div className="animate-pulse">
+            <div className="h-6 bg-gray-200 rounded mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded mb-4"></div>
+            <div className="h-32 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if required data is available after hydration
+  if (!currentOutboundFlight) {
+    return (
+      <div className="max-w-5xl mx-auto mt-6">
+        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded">
+          <p className="font-medium">
+            ⚠️ Flight information is missing. Please go back and select your flights again.
+          </p>
+          <button 
+            onClick={() => window.history.back()}
+            className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const updatePassenger = (
     index: number,
@@ -293,7 +335,7 @@ const PassengerPaymentForm = () => {
       },
       prefill: {
         name: passengers[0].name,
-        email: user.email,
+        email: user?.email || '',
       },
       notes: {
         flight: currentOutboundFlight.flight_number ?? '',

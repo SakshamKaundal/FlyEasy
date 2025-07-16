@@ -164,10 +164,26 @@ const BookingForm = () => {
     fetchHistory();
   }, [user?.email, userContextUpdated]); // Re-run when user email changes or context is updated
 
+  // Validation function for return date
+  const validateReturnDate = (startDate: string, returnDate: string): boolean => {
+    if (!startDate || !returnDate) return true; // Allow empty dates
+    
+    const start = new Date(startDate);
+    const returnD = new Date(returnDate);
+    
+    return returnD >= start;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!from || !to || !startDate) return alert('Please fill in all required fields.');
+
+    // Validate return date if provided
+    if (returnDate && !validateReturnDate(startDate, returnDate)) {
+      alert('Return date cannot be before the start date.');
+      return;
+    }
 
     setSearching(true);
     setIsRoundTrip(!!returnDate);
@@ -263,6 +279,23 @@ const BookingForm = () => {
     }
   };
 
+  // Handle start date change - clear return date if it becomes invalid
+  const handleStartDateChange = (newStartDate: string) => {
+    setStartDate(newStartDate);
+    
+    // If return date is set and now invalid, clear it
+    if (returnDate && !validateReturnDate(newStartDate, returnDate)) {
+      setReturnDate('');
+    }
+  };
+
+  // Handle return date change with validation
+  const handleReturnDateChange = (newReturnDate: string) => {
+    if (!newReturnDate || validateReturnDate(startDate, newReturnDate)) {
+      setReturnDate(newReturnDate);
+    }
+  };
+
   return (
     <div className="w-full px-4 sm:px-6 lg:px-0 flex flex-col items-center py-10 overflow-x-hidden">
       {searching && <SearchFlights />}
@@ -308,7 +341,7 @@ const BookingForm = () => {
               <input
                 type="date"
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                onChange={(e) => handleStartDateChange(e.target.value)}
                 className="border rounded px-3 py-2 text-sm bg-white w-full"
                 required
               />
@@ -319,9 +352,15 @@ const BookingForm = () => {
               <input
                 type="date"
                 value={returnDate}
-                onChange={(e) => setReturnDate(e.target.value)}
+                onChange={(e) => handleReturnDateChange(e.target.value)}
+                min={startDate} // Set minimum date to start date
                 className="border rounded px-3 py-2 text-sm bg-white w-full"
               />
+              {returnDate && !validateReturnDate(startDate, returnDate) && (
+                <span className="text-red-500 text-xs mt-1">
+                  Return date cannot be before start date
+                </span>
+              )}
             </div>
 
             <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4">
