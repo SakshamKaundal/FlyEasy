@@ -351,6 +351,53 @@ Set-Cookie: token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; HttpOnly; Secure; Sam
   }
 }
 ```
+📈 getDashboardStats() — Dashboard Analytics API
+This is a server-side analytics function used to populate the Admin Dashboard of a flight booking application. It aggregates and returns key metrics from Supabase tables such as bookings and passengers.
+
+🔧 Function Purpose
+getDashboardStats() collects and returns the following insights:
+
+✈️ Top 4 Most Booked Routes
+
+💰 Total Earnings from All Bookings
+
+🚻 Gender Distribution of Passengers
+
+📅 Monthly Booking Trends
+
+📦 Data Sources
+bookings
+
+Used to calculate top routes, revenue, and booking trends.
+
+passengers
+
+Used to analyze gender statistics.
+
+🔄 Data Aggregation Logic
+1. Top Routes
+Groups bookings by flight_from → flight_to.
+
+Counts how many times each route was booked.
+
+Calculates total revenue per route.
+
+Returns the top 4 routes sorted by trip count.
+
+2. Total Earnings
+Sums the total_amount from all bookings with non-null values.
+
+3. Gender Stats
+Groups passengers by gender and counts the total for each gender.
+
+4. Monthly Trends
+Extracts the created_at field from bookings.
+
+Groups and counts the bookings per month (e.g., "2025-07" format).
+
+Returns a sorted monthly trend array.
+
+
 
 **❌ Error Responses:**
 - **400 Bad Request:** Missing required fields
