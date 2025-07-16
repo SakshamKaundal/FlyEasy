@@ -20,20 +20,7 @@ interface BookingTrend {
   booking_count: number;
 }
 
-interface BookingWithAmount {
-  id: string;
-  user_id: string;
-  flight_id: string;
-  payment_status: boolean;
-  payment_id: string | null;
-  created_at: string;
-  updated_at: string;
-  flight_from: string;
-  flight_to: string;
-  flight_date: string;
-  travel_class: string;
-  total_amount: number;
-}
+
 
 export async function getDashboardStats(): Promise<{
   topRoutes: RouteStats[];
