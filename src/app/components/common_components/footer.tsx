@@ -14,7 +14,7 @@ const Footer = () => {
           <p className="text-sm md:text-base lg:text-lg font-medium tracking-wide">
             Copyright © 
             <span className="ml-2 font-bold bg-gradient-to-r from-white via-gray-200 to-white bg-clip-text text-transparent">
-              Ritank Saxena
+              Saksham Kaundal
             </span>
           </p>
           
