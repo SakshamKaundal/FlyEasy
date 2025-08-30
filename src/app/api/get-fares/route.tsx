@@ -1,13 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/superbaseClient";
 
+function capitalizeFirstLetter(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { from, to, travel_class, passenger_type = "infant" } = body;
+  let { from, to, travel_class, passenger_type } = body;
+
+  console.log("Received fare request:", { from, to, travel_class, passenger_type });
 
   if (!from || !to || !travel_class) {
     return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
   }
+
+  // Capitalize the first letter of travel_class and passenger_type
+  travel_class = capitalizeFirstLetter(travel_class);
+  passenger_type = capitalizeFirstLetter(passenger_type ?? 'adult');
+
+  console.log("Querying with:", { from, to, travel_class, passenger_type });
 
   const { data, error } = await supabase
     .from("fare_rules")
@@ -19,12 +31,18 @@ export async function POST(req: NextRequest) {
     .limit(1)
     .maybeSingle();
 
+  if (error) {
+    console.error("Supabase error:", error);
+  }
+
   if (!data) {
+    console.log("No fare rule found for the given criteria.");
     return NextResponse.json({
       message: "Class does not exist on that flight",
-      fare: error
+      fare: null
     }, { status: 200 });
   }
 
+  console.log("Found fare:", data.base_price);
   return NextResponse.json({ fare: data.base_price }, { status: 200 });
 }

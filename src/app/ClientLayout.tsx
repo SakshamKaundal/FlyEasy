@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { UserInformation } from './types/application.types';
 import UserContext from '@/components/context-api/save-user-context';
 import Layout from './components/common_components/layout';
@@ -8,6 +8,22 @@ import Layout from './components/common_components/layout';
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserInformation | null>(null);
   const [isRoundTrip, setIsRoundTrip] = useState(false);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch('/api/authentication');
+        if (res.ok) {
+          const userData = await res.json();
+          setUser(userData.user);
+        }
+      } catch (error) {
+        console.error('Failed to fetch user', error);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   return (
     <UserContext.Provider value={{ user, setUser, isRoundTrip, setIsRoundTrip }}>

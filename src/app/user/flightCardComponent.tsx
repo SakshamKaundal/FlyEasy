@@ -242,6 +242,7 @@ const FlightResults: React.FC<Props> = ({ oneWay, returnFlights }) => {
                 <button
                   className="bg-black text-white cursor-pointer w-full sm:w-[140px] h-[42px] px-6 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors flex items-center justify-center"
                   onClick={handlePayNow}
+                  disabled={isRoundTrip && (!selectedOutbound || !selectedReturn)}
                 >
                   Pay Now
                 </button>
@@ -381,13 +382,13 @@ const FlightCard = ({
         body: JSON.stringify({
           from: fromLocation,
           to: toLocation,
-          travel_class: travelClass,
-          passenger_type: "infant",
+          travel_class: travelClass
         }),
       });
 
       const data = await res.json();
 
+      console.log("data is ", data);
       if (res.ok && data.fare !== null && data.fare !== undefined) {
         setSelectedClass(travelClass);
         setFare(data.fare);
