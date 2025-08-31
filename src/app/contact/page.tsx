@@ -18,7 +18,7 @@ export default function ContactUs() {
             <Mail className="text-blue-600 w-6 h-6" />
             <div>
               <p className="text-sm text-gray-600">Email</p>
-              <a href="mailto:saxena.ritank@gmail.com" className="text-blue-800 font-medium text-base">saxena.ritank@gmail.com</a>
+              <a href="mailto:saxena.ritank@gmail.com" className="text-blue-800 font-medium text-base">kaundalsaksham@gmail.com</a>
             </div>
           </div>
 
@@ -26,7 +26,7 @@ export default function ContactUs() {
             <Phone className="text-blue-600 w-6 h-6" />
             <div>
               <p className="text-sm text-gray-600">Phone</p>
-              <a href="tel:+919399039501" className="text-blue-800 font-medium text-base">+91 93990 39501</a>
+              <a href="tel:+919399039501" className="text-blue-800 font-medium text-base">+91 9981608897</a>
             </div>
           </div>
 
