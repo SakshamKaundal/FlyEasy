@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from "react";
+import Image from 'next/image';
 
 const Header = () => {
   const [email, setEmail] = useState<string | null>(null);
@@ -20,9 +21,11 @@ const Header = () => {
         </p>
 
         <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden border border-gray-300 hover:scale-110 transition-transform duration-200 flex-shrink-0">
-          <img
+          <Image
             src={`https://api.dicebear.com/7.x/initials/svg?seed=${email || 'U'}`}
             alt="avatar"
+            width={40}
+            height={40}
             className="w-full h-full object-cover"
           />
         </div>

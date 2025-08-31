@@ -130,7 +130,7 @@ const BookingForm = () => {
     const timeoutId = setTimeout(updateUserFromLocalStorage, 100);
     
     return () => clearTimeout(timeoutId);
-  }, [setUser]); // Include setUser in dependencies
+  }, [setUser, user]); // Include setUser in dependencies
 
   useEffect(() => {
     // Only fetch history after user context has been updated

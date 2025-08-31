@@ -7,7 +7,9 @@ const withPWA = require('next-pwa')({
 
 const nextConfig = {
   reactStrictMode: false,
-
+  images: {
+    domains: ['api.dicebear.com'],
+  },
   async redirects() {
     return [
       {

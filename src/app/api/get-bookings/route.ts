@@ -64,22 +64,27 @@ export async function POST(req: NextRequest) {
     }
 
     // Transform bookings data - no need for separate journey lookup
-    const enrichedBookings = bookings.map(booking => ({
-      id: booking.id,
-      flight_id: booking.flight_id,
-      payment_id: booking.payment_id,
-      payment_status: booking.payment_status,
-      created_at: booking.created_at,
-      travel_class: booking.travel_class,
-      total_amount: booking.total_amount,
-      flight: booking.journeys.flights,
-      journey: {
-        flight_from: booking.flight_from,
-        flight_to: booking.flight_to,
-        flight_date: booking.flight_date
-      },
-      passengers: booking.passengers || []
-    }));
+    const enrichedBookings = bookings.map(booking => {
+      const journey = Array.isArray(booking.journeys) ? booking.journeys[0] : booking.journeys;
+      const flight = journey ? (Array.isArray(journey.flights) ? journey.flights[0] : journey.flights) : null;
+
+      return {
+        id: booking.id,
+        flight_id: booking.flight_id,
+        payment_id: booking.payment_id,
+        payment_status: booking.payment_status,
+        created_at: booking.created_at,
+        travel_class: booking.travel_class,
+        total_amount: booking.total_amount,
+        flight: flight,
+        journey: {
+          flight_from: booking.flight_from,
+          flight_to: booking.flight_to,
+          flight_date: booking.flight_date
+        },
+        passengers: booking.passengers || []
+      }
+    });
 
     return NextResponse.json({ bookings: enrichedBookings }, { status: 200 });
     
