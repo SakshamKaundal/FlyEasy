@@ -13,6 +13,7 @@ export async function PATCH(req: NextRequest) {
     );
   }
 
+  // 1. Get the flight id from the flight number
   const { data: flight, error: flightError } = await supabase
     .from('flights')
     .select('id')
@@ -26,10 +27,28 @@ export async function PATCH(req: NextRequest) {
     );
   }
 
+  // 2. Find the new journey with the given flight id and new date
+  const { data: newJourney, error: journeyError } = await supabase
+    .from('journeys')
+    .select('id')
+    .eq('flight_id', flight.id)
+    .eq('flight_date', new_flight_date)
+    .single();
+
+  if (journeyError || !newJourney) {
+    return NextResponse.json(
+      { message: 'No journey found for the selected flight and date', error: journeyError?.message },
+      { status: 404 }
+    );
+  }
+
+  // 3. Update the booking with the new journey id and flight date
   const { data, error: updateError } = await supabase
     .from('bookings')
-    .update({ flight_date: new_flight_date })
-    .eq('flight_id', flight.id)
+    .update({ 
+      flight_id: newJourney.id, 
+      flight_date: new_flight_date 
+    })
     .eq('payment_id', payment_id)
     .select();
 

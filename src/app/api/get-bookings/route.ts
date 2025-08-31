@@ -34,12 +34,14 @@ export async function POST(req: NextRequest) {
         flight_from,
         flight_to,
         flight_date,
-        flights (
-          id,
-          flight_number,
-          company_name,
-          departure_time,
-          arrival_time
+        journeys (
+          flights (
+            id,
+            flight_number,
+            company_name,
+            departure_time,
+            arrival_time
+          )
         ),
         passengers (
           name,
@@ -70,7 +72,7 @@ export async function POST(req: NextRequest) {
       created_at: booking.created_at,
       travel_class: booking.travel_class,
       total_amount: booking.total_amount,
-      flight: booking.flights,
+      flight: booking.journeys.flights,
       journey: {
         flight_from: booking.flight_from,
         flight_to: booking.flight_to,

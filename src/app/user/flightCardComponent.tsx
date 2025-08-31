@@ -36,6 +36,7 @@ interface Props {
 }
 
 const FlightResults: React.FC<Props> = ({ oneWay, returnFlights }) => {
+  console.log("FlightResults props:", { oneWay, returnFlights });
   const hasOneWay = oneWay.length > 0;
   const hasReturn = returnFlights.length > 0;
   const [isMobile, setIsMobile] = useState(false);

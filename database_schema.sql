@@ -1,4 +1,3 @@
-
 -- Users Table
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -43,7 +42,13 @@ CREATE TABLE bookings (
     flight_id UUID REFERENCES journeys(id),
     payment_status BOOLEAN DEFAULT FALSE,
     payment_id VARCHAR(255),
-    created_at TIMESTAMPTZ DEFAULT now()
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    flight_from VARCHAR(255),
+    flight_to VARCHAR(255),
+    flight_date DATE,
+    travel_class VARCHAR(50),
+    total_amount NUMERIC(10, 2)
 );
 
 -- Passengers Table

@@ -198,6 +198,8 @@ const BookingForm = () => {
 
       const data = await res.json();
 
+      console.log("API Response in handleSubmit:", data);
+
       if (!res.ok) {
         alert(data.message || 'Failed to fetch flights.');
         setSearching(false);
@@ -261,6 +263,8 @@ const BookingForm = () => {
       });
 
       const data = await res.json();
+
+      console.log("API Response in handleRecentSearchClick:", data);
 
       if (!res.ok) {
         alert(data.message || 'Failed to fetch flights.');

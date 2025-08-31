@@ -10,6 +10,7 @@ interface Flights {
 }
 
 interface Journey {
+  id: string;
   flight_id: string;
   flight_date: string;
   flight_from: string;
@@ -30,11 +31,12 @@ export async function POST(req: NextRequest) {
   const { data: journeysRaw, error } = await supabase
     .from('journeys')
     .select(`
+      id,
       flight_id,
       flight_date,
       flight_from,
       flight_to,
-      flights:flights!journeys_flight_id_fkey (
+      flights (
         id,
         company_name,
         flight_number,
@@ -69,7 +71,7 @@ export async function POST(req: NextRequest) {
     );
 
     return {
-      flight_id: journey.flight_id,
+      flight_id: journey.id, // Use journey.id as flight_id for booking
       date: journey.flight_date,
       from: journey.flight_from,
       to: journey.flight_to,
