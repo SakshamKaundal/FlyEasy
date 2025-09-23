@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     if (authError || !authData.user) {
       throw authError || new Error("Signup failed");
     }
-
+     
     const userId = authData.user.id;
 
     const { error: userError } = await supabase.from("users").insert([
