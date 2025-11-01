@@ -47,7 +47,8 @@ export async function PATCH(req: NextRequest) {
     .from('bookings')
     .update({ 
       flight_id: newJourney.id, 
-      flight_date: new_flight_date 
+      flight_date: new_flight_date, 
+      updated_at: new Date().toISOString() 
     })
     .eq('payment_id', payment_id)
     .select();
