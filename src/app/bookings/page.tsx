@@ -5,6 +5,7 @@ import { ArrowRight, ChevronDown, ChevronUp, User, Calendar, CreditCard, CircleC
 import { useRouter } from 'next/navigation';
 import { getRandomHexColor } from '@/lib/utils';
 import CalendarPopup from '@/app/updateCalendar';
+import { getCachedBookingsForEmail, saveBookingsForEmail } from '@/lib/indexedDb';
 
 interface Booking {
   id: string;
@@ -113,6 +114,7 @@ const BookingCard = () => {
   const [calendarOpen, setCalendarOpen] = useState<boolean>(false);
   const [activeBookingId, setActiveBookingId] = useState<string | null>(null);
   const [updateLoading, setUpdateLoading] = useState(false);
+  const [offlineNotice, setOfflineNotice] = useState<string | null>(null);
   
   // Modal states
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -121,11 +123,20 @@ const BookingCard = () => {
 
   useEffect(() => {
     const fetchBookings = async () => {
-      // Get email from localStorage instead of context API
       const userEmail = localStorage.getItem('email');
-      
       if (!userEmail) {
         console.warn('No email found in localStorage');
+        setLoading(false);
+        return;
+      }
+
+      // If offline, immediately try cache
+      if (typeof navigator !== 'undefined' && navigator && !navigator.onLine) {
+        const cached = await getCachedBookingsForEmail(userEmail);
+        if (cached && Array.isArray(cached)) {
+          setBookings(cached as Booking[]);
+          setOfflineNotice('You are offline. Showing your last saved bookings.');
+        }
         setLoading(false);
         return;
       }
@@ -140,11 +151,27 @@ const BookingCard = () => {
         const data = await res.json();
         if (res.ok && Array.isArray(data.bookings)) {
           setBookings(data.bookings);
+          // Save to offline cache
+          try { await saveBookingsForEmail(userEmail, data.bookings); } catch { /* ignore */ }
+          setOfflineNotice(null);
         } else {
-          console.warn('No bookings found');
+          // Fall back to cache when server returns empty or error-like payload
+          const cached = await getCachedBookingsForEmail(userEmail);
+          if (cached && Array.isArray(cached)) {
+            setBookings(cached as Booking[]);
+            setOfflineNotice('Showing saved bookings. Live data not available.');
+          } else {
+            console.warn('No bookings found');
+          }
         }
       } catch (err) {
         console.error('Failed to fetch bookings:', err);
+        // Fall back to cache on network error
+        const cached = await getCachedBookingsForEmail(userEmail);
+        if (cached && Array.isArray(cached)) {
+          setBookings(cached as Booking[]);
+          setOfflineNotice('You are offline. Showing your last saved bookings.');
+        }
       } finally {
         setLoading(false);
       }
@@ -256,6 +283,11 @@ const BookingCard = () => {
 
   return (
     <div className="space-y-4 mt-4">
+      {offlineNotice && (
+        <div className="w-full rounded-md border border-yellow-300 bg-yellow-50 text-yellow-800 px-4 py-2 text-sm">
+          {offlineNotice}
+        </div>
+      )}
       {/* Common heading for all bookings */}
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Bookings</h2>
       
